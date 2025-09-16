@@ -53,10 +53,9 @@ export function BookCard({ book, onEdit, onDelete }: BookCardProps) {
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex flex-col h-full">
-          {/* Book Cover */}
-          <div className="relative aspect-[3/4] mb-4 mx-auto">
+          <div className="relative aspect-[3/4] mb-3 sm:mb-4 mx-auto">
             <Image
               src={book.cover || "/placeholder.svg?height=240&width=180&query=book%20cover"}
               alt={book.title}
@@ -65,11 +64,12 @@ export function BookCard({ book, onEdit, onDelete }: BookCardProps) {
             />
           </div>
 
-          {/* Book Info */}
           <div className="flex-1 space-y-2">
             <div>
-              <h3 className="font-semibold text-foreground line-clamp-2 text-balance">{book.title}</h3>
-              <p className="text-sm text-muted-foreground">{book.author}</p>
+              <h3 className="font-semibold text-foreground line-clamp-2 text-balance text-sm sm:text-base">
+                {book.title}
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{book.author}</p>
             </div>
 
             {book.year && <p className="text-xs text-muted-foreground">{book.year}</p>}
@@ -89,7 +89,6 @@ export function BookCard({ book, onEdit, onDelete }: BookCardProps) {
               </div>
             )}
 
-            {/* Progress for currently reading books */}
             {book.status === ReadingStatus.LENDO && book.pages && book.currentPage && (
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-muted-foreground">
@@ -108,18 +107,17 @@ export function BookCard({ book, onEdit, onDelete }: BookCardProps) {
             )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <Button asChild size="sm" variant="outline" className="flex-1 bg-transparent">
+          <div className="flex gap-1 sm:gap-2 mt-3 sm:mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Button asChild size="sm" variant="outline" className="flex-1 bg-transparent text-xs sm:text-sm">
               <Link href={`/livro/${book.id}`}>
                 <Eye className="h-3 w-3 mr-1" />
-                Ver
+                <span className="hidden sm:inline">Ver</span>
               </Link>
             </Button>
             {onEdit && (
-              <Button size="sm" variant="outline" onClick={() => onEdit(book)} className="flex-1">
+              <Button size="sm" variant="outline" onClick={() => onEdit(book)} className="flex-1 text-xs sm:text-sm">
                 <Edit className="h-3 w-3 mr-1" />
-                Editar
+                <span className="hidden sm:inline">Editar</span>
               </Button>
             )}
             {onDelete && (
@@ -129,7 +127,7 @@ export function BookCard({ book, onEdit, onDelete }: BookCardProps) {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-destructive hover:text-destructive-foreground hover:bg-destructive bg-transparent"
+                    className="text-destructive hover:text-destructive-foreground hover:bg-destructive bg-transparent px-2 sm:px-3"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>

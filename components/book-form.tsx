@@ -180,18 +180,17 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground text-balance">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground text-balance">
             {mode === "edit" ? "Editar Livro" : "Adicionar Novo Livro"}
           </h1>
-          <p className="text-muted-foreground mt-2 text-pretty">
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base text-pretty">
             {mode === "edit" ? "Atualize as informações do livro" : "Preencha as informações do seu novo livro"}
           </p>
         </div>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild size="sm" className="self-start sm:self-auto bg-transparent">
           <Link href="/biblioteca">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
@@ -199,9 +198,8 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
         </Button>
       </div>
 
-      {/* Progress Bar */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4 sm:pt-6">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Progresso do formulário</span>
@@ -212,22 +210,20 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
         </CardContent>
       </Card>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Basic Information */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
+          <div className="xl:col-span-2 space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                   <BookOpen className="h-5 w-5 text-primary" />
                   Informações Básicas
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title">
+                    <Label htmlFor="title" className="text-sm">
                       Título <span className="text-destructive">*</span>
                     </Label>
                     <Input
@@ -240,7 +236,7 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="author">
+                    <Label htmlFor="author" className="text-sm">
                       Autor <span className="text-destructive">*</span>
                     </Label>
                     <Input
@@ -253,9 +249,11 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="genre">Gênero</Label>
+                    <Label htmlFor="genre" className="text-sm">
+                      Gênero
+                    </Label>
                     <Select
                       value={watch("genre") || "Nenhum gênero"}
                       onValueChange={(value) => setValue("genre", value)}
@@ -275,7 +273,9 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="year">Ano de Publicação</Label>
+                    <Label htmlFor="year" className="text-sm">
+                      Ano de Publicação
+                    </Label>
                     <Input
                       id="year"
                       type="number"
@@ -288,22 +288,25 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="isbn">ISBN</Label>
+                    <Label htmlFor="isbn" className="text-sm">
+                      ISBN
+                    </Label>
                     <Input id="isbn" {...register("isbn")} placeholder="978-0000000000" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Reading Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Informações de Leitura</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Informações de Leitura</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="status">Status de Leitura</Label>
+                    <Label htmlFor="status" className="text-sm">
+                      Status de Leitura
+                    </Label>
                     <Select
                       value={watch("status")}
                       onValueChange={(value) => setValue("status", value as ReadingStatus)}
@@ -322,7 +325,9 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="pages">Total de Páginas</Label>
+                    <Label htmlFor="pages" className="text-sm">
+                      Total de Páginas
+                    </Label>
                     <Input
                       id="pages"
                       type="number"
@@ -333,7 +338,9 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="currentPage">Página Atual</Label>
+                    <Label htmlFor="currentPage" className="text-sm">
+                      Página Atual
+                    </Label>
                     <Input
                       id="currentPage"
                       type="number"
@@ -346,59 +353,64 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Avaliação</Label>
-                  {renderStarRating()}
+                  <Label className="text-sm">Avaliação</Label>
+                  <div className="flex flex-wrap items-center gap-2">{renderStarRating()}</div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Additional Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Informações Adicionais</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Informações Adicionais</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="synopsis">Sinopse</Label>
+                  <Label htmlFor="synopsis" className="text-sm">
+                    Sinopse
+                  </Label>
                   <Textarea
                     id="synopsis"
                     {...register("synopsis")}
                     placeholder="Digite uma breve sinopse do livro..."
                     rows={4}
+                    className="resize-none"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Notas Pessoais</Label>
+                  <Label htmlFor="notes" className="text-sm">
+                    Notas Pessoais
+                  </Label>
                   <Textarea
                     id="notes"
                     {...register("notes")}
                     placeholder="Suas anotações e impressões sobre o livro..."
                     rows={3}
+                    className="resize-none"
                   />
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Cover Preview */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                   <Upload className="h-5 w-5 text-primary" />
                   Capa do Livro
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="cover">URL da Capa</Label>
+                  <Label htmlFor="cover" className="text-sm">
+                    URL da Capa
+                  </Label>
                   <Input id="cover" {...register("cover")} placeholder="https://exemplo.com/capa.jpg" type="url" />
                   {errors.cover && <p className="text-sm text-destructive">{errors.cover.message}</p>}
                 </div>
 
-                {/* Cover Preview */}
-                <div className="aspect-[3/4] bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                <div className="aspect-[3/4] bg-muted rounded-lg flex items-center justify-center overflow-hidden max-w-xs mx-auto">
                   {coverPreview ? (
                     <Image
                       src={coverPreview || "/placeholder.svg"}
@@ -409,8 +421,8 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
                       onError={() => setCoverPreview("")}
                     />
                   ) : (
-                    <div className="text-center text-muted-foreground">
-                      <Upload className="h-12 w-12 mx-auto mb-2" />
+                    <div className="text-center text-muted-foreground p-4">
+                      <Upload className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2" />
                       <p className="text-sm">Preview da capa</p>
                       <p className="text-xs">Adicione uma URL para ver a prévia</p>
                     </div>
@@ -419,16 +431,21 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
               </CardContent>
             </Card>
 
-            {/* Form Actions */}
             <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <CardContent className="pt-4 sm:pt-6">
+                <div className="space-y-3 sm:space-y-4">
+                  <Button type="submit" className="w-full" disabled={isSubmitting} size="sm">
                     <Save className="h-4 w-4 mr-2" />
                     {isSubmitting ? "Salvando..." : mode === "edit" ? "Atualizar Livro" : "Adicionar Livro"}
                   </Button>
 
-                  <Button type="button" variant="outline" className="w-full bg-transparent" onClick={() => reset()}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-transparent"
+                    onClick={() => reset()}
+                    size="sm"
+                  >
                     Limpar Formulário
                   </Button>
                 </div>
