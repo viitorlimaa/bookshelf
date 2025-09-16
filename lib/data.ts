@@ -14,8 +14,8 @@ export const initialBooks: Book[] = [
       "Um dos maiores clássicos da literatura brasileira, Dom Casmurro narra a história de Bentinho e sua obsessão por Capitu, explorando temas como ciúme, memória e a natureza humana.",
     cover: "/placeholder-yp3gn.png",
     status: ReadingStatus.LIDO,
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-02-20"),
+    createdAt: new Date("2025-01-15"),
+    updatedAt: new Date("2025-02-20"),
   },
   {
     id: "2",
@@ -30,8 +30,8 @@ export const initialBooks: Book[] = [
       "Em um futuro distante, Paul Atreides deve navegar pela política intergaláctica e despertar poderes místicos para salvar seu povo no planeta desértico Arrakis.",
     cover: "/placeholder-7eydd.png",
     status: ReadingStatus.LENDO,
-    createdAt: new Date("2024-02-01"),
-    updatedAt: new Date("2024-03-10"),
+    createdAt: new Date("2025-02-01"),
+    updatedAt: new Date("2025-03-10"),
   },
   {
     id: "3",
@@ -78,6 +78,6 @@ export const initialBooks: Book[] = [
     cover: "/placeholder-uhuqh.png",
     status: ReadingStatus.PAUSADO,
     createdAt: new Date("2024-02-10"),
-    updatedAt: new Date("2024-03-01"),
+    updatedAt: new Date("2025-03-01"),
   },
 ]
