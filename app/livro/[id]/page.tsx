@@ -12,6 +12,7 @@ import { ReadingStatus, STATUS_LABELS } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
+import React from "react"
 
 export default function BookDetailsPage() {
   const params = useParams()
