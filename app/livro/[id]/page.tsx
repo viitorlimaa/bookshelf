@@ -43,7 +43,7 @@ export default function BookDetailsPage() {
     )
   }
 
-  const renderStars = (rating?: number) => {
+  const renderStars = (rating?: number | "") => {
     if (!rating) return null
 
     return (

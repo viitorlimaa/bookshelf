@@ -1,22 +1,25 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
-import { useBookStore } from "@/lib/book-store"
-import { Navigation } from "@/components/navigation"
-import { BookCard } from "@/components/book-card"
-import { SearchFilters } from "@/components/search-filters"
-import { DeleteBookDialog } from "@/components/delete-book-dialog"
-import { Button } from "@/components/ui/button"
-import { BookOpen, Plus } from "lucide-react"
-import Link from "next/link"
+import { useState, useMemo, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useBookStore } from "@/lib/book-store";
+import { Navigation } from "@/components/navigation";
+import { BookCard } from "@/components/book-card";
+import { SearchFilters } from "@/components/search-filters";
+import { DeleteBookDialog } from "@/components/delete-book-dialog";
+import { Button } from "@/components/ui/button";
+import { BookOpen, Plus } from "lucide-react";
+import Link from "next/link";
+import { text } from "stream/consumers";
 
 export default function BibliotecaPage() {
-  const router = useRouter()
-  const { books } = useBookStore()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedGenre, setSelectedGenre] = useState("all")
-  const [selectedStatus, setSelectedStatus] = useState("all")
+  const router = useRouter();
+  const searchParams = useSearchParams(); // novo hook
+  const success = searchParams.get("success");
+  const { books } = useBookStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
 
   const filteredBooks = useMemo(() => {
     return books.filter((book) => {
@@ -24,40 +27,62 @@ export default function BibliotecaPage() {
       const matchesSearch =
         searchQuery === "" ||
         book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase())
+        book.author.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Genre filter
-      const matchesGenre = selectedGenre === "all" || book.genre === selectedGenre
+      const matchesGenre =
+        selectedGenre === "all" || book.genre === selectedGenre;
 
       // Status filter
-      const matchesStatus = selectedStatus === "all" || book.status === selectedStatus
+      const matchesStatus =
+        selectedStatus === "all" || book.status === selectedStatus;
 
-      return matchesSearch && matchesGenre && matchesStatus
-    })
-  }, [books, searchQuery, selectedGenre, selectedStatus])
+      return matchesSearch && matchesGenre && matchesStatus;
+    });
+  }, [books, searchQuery, selectedGenre, selectedStatus]);
 
-  const hasActiveFilters = searchQuery !== "" || selectedGenre !== "all" || selectedStatus !== "all"
+  const hasActiveFilters =
+    searchQuery !== "" || selectedGenre !== "all" || selectedStatus !== "all";
 
   const handleClearFilters = () => {
-    setSearchQuery("")
-    setSelectedGenre("all")
-    setSelectedStatus("all")
-  }
+    setSearchQuery("");
+    setSelectedGenre("all");
+    setSelectedStatus("all");
+  };
 
   const handleEditBook = (book: any) => {
-    router.push(`/editar/${book.id}`)
-  }
+    router.push(`/editar/${book.id}`);
+  };
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        // Tira o ?success da biblioteca sem recarregar
+        router.replace("/biblioteca");
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, router]);
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {success && (
+          <div className="p-3 mb-6 text-green-700 bg-green-100 rounded-md text-sm">
+            Livro adicionado com sucesso!
+          </div>
+        )}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground text-balance">Minha Biblioteca</h1>
+            <h1 className="text-3xl font-bold text-foreground text-balance">
+              Minha Biblioteca
+            </h1>
             <p className="text-muted-foreground mt-2 text-pretty">
-              {filteredBooks.length} {filteredBooks.length === 1 ? "livro encontrado" : "livros encontrados"}
+              {filteredBooks.length}{" "}
+              {filteredBooks.length === 1
+                ? "livro encontrado"
+                : "livros encontrados"}
             </p>
           </div>
 
@@ -99,7 +124,9 @@ export default function BibliotecaPage() {
           <div className="text-center py-12">
             <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">
-              {hasActiveFilters ? "Nenhum livro encontrado" : "Sua biblioteca está vazia"}
+              {hasActiveFilters
+                ? "Nenhum livro encontrado"
+                : "Sua biblioteca está vazia"}
             </h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto text-pretty">
               {hasActiveFilters
@@ -122,5 +149,5 @@ export default function BibliotecaPage() {
         )}
       </main>
     </div>
-  )
+  );
 }

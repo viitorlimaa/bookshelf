@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -58,6 +58,8 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
   const { addBook, updateBook } = useBookStore();
   const [coverPreview, setCoverPreview] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     register,
@@ -129,6 +131,7 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
 
   const onSubmit = async (data: BookFormData) => {
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       // Convert empty strings to undefined for optional numeric fields
       const processedData = {
@@ -150,10 +153,12 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
       } else {
         addBook(processedData);
       }
+      setSubmitSuccess(true);
 
-      router.push("/biblioteca");
-    } catch (error) {
-      console.error("Error saving book:", error);
+      setTimeout(() => router.push("/biblioteca?success=1"), 1000);
+    } catch (err) {
+      console.error(err);
+      setSubmitError("Erro ao salvar livro");
     } finally {
       setIsSubmitting(false);
     }
