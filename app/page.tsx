@@ -17,10 +17,10 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { date } from "zod";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Dashboard() {
- const { books, getBooksByStatus } = useBookStore();
+  const { books, getBooksByStatus } = useBookStore();
   const [hydrated, setHydrated] = useState(false);
 
   // Marcar componente como cliente
@@ -39,17 +39,21 @@ export default function Dashboard() {
 
   const recentBooks = useMemo(() => {
     return [...books]
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
       .slice(0, 3);
   }, [books]);
 
   if (!hydrated) return null; // evita SSR/CSR mismatch
 
   return (
+    
     <div className="min-h-screen bg-background">
       <Navigation />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"> 
+         
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground text-balance">
             Bem-vindo à sua Biblioteca Pessoal
@@ -90,7 +94,8 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Currently Reading */}
           <Card className="lg:col-span-2">
-            <CardHeader>
+            <CardHeader> 
+        
               <CardTitle className="flex items-center gap-2">
                 <BookMarked className="h-5 w-5 text-primary" />
                 Lendo Atualmente
@@ -202,7 +207,7 @@ export default function Dashboard() {
                 ))}
               </div>
 
-              <div className="mt-6 space-y-2">
+              <div className="mt-6 space-y-2 cursor-pointer">
                 <Button asChild className="w-full">
                   <Link href="/adicionar">
                     <Plus className="h-4 w-4 mr-2" />

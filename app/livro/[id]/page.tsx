@@ -43,8 +43,8 @@ export default function BookDetailsPage() {
     )
   }
 
-  const renderStars = (rating?: number | "") => {
-    if (!rating) return null
+  const renderStars = (rating?: number) => {
+   if (!rating || rating < 1 ) return null
 
     return (
       <div className="flex items-center gap-1">
@@ -161,7 +161,7 @@ export default function BookDetailsPage() {
                   )}
 
                   {/* Rating */}
-                  {book.rating && (
+                  { book.rating && (
                     <div className="space-y-2">
                       <Separator />
                       <div>

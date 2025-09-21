@@ -192,7 +192,7 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
           variant="ghost"
           size="sm"
           onClick={() => setValue("rating", "")}
-          className="ml-2 text-xs text-muted-foreground"
+          className="ml-2 text-xs text-muted-foreground cursor-pointer"
         >
           Limpar
         </Button>
@@ -356,11 +356,11 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-2">
+                  <div className="space-y-2 cursor-pointer">
                     <Label htmlFor="status" className="text-sm">
                       Status de Leitura
                     </Label>
-                    <Select
+                    <Select 
                       value={watch("status")}
                       onValueChange={(value) =>
                         setValue("status", value as ReadingStatus)
@@ -515,7 +515,7 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
                 <div className="space-y-3 sm:space-y-4">
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full cursor-pointer"
                     disabled={isSubmitting}
                     size="sm"
                   >
@@ -530,7 +530,7 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full bg-transparent"
+                    className="w-full bg-transparent cursor-pointer"
                     onClick={() => reset()}
                     size="sm"
                   >

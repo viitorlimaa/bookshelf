@@ -53,6 +53,7 @@ export default function BibliotecaPage() {
   const handleEditBook = (book: any) => {
     router.push(`/editar/${book.id}`);
   };
+  
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
@@ -86,8 +87,8 @@ export default function BibliotecaPage() {
             </p>
           </div>
 
-          <Button asChild>
-            <Link href="/adicionar">
+          <Button asChild >
+            <Link href="/adicionar" className="cursor-pointer">
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Livro
             </Link>
