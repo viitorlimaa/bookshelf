@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,7 @@ import { Star, Upload, BookOpen, Save, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Input } from "./ui/input";
+import { Skeleton } from "./ui/skeleton";
 
 const bookSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
@@ -201,7 +202,9 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
   };
 
   return (
+    
     <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+      <Suspense fallback={<Skeleton />}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground text-balance">
@@ -542,6 +545,7 @@ export function BookForm({ book, mode = "create" }: BookFormProps) {
           </div>
         </div>
       </form>
+       </Suspense>
     </div>
   );
 }

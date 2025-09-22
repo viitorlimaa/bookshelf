@@ -4,9 +4,10 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Book, ReadingStatus } from "./types";
 import { initialBooks } from "./data";
-
 interface BookStore {
   books: Book[];
+  isLoading: boolean; // ⬅ novo
+  setLoading: (value: boolean) => void; // ⬅ novo
   addBook: (book: Omit<Book, "id" | "createdAt" | "updatedAt">) => void;
   updateBook: (id: string, updates: Partial<Book>) => void;
   deleteBook: (id: string) => void;
@@ -16,36 +17,42 @@ interface BookStore {
   filterByGenre: (genre: string) => Book[];
 }
 
+
 export const useBookStore = create<BookStore>()(
   persist(
     (set, get) => ({
       books: initialBooks,
+      isLoading: false, // ⬅ novo estado
 
-   addBook: (bookData) => {
-  if (!bookData.title || !bookData.author) {
-    throw new Error("Título e autor são obrigatórios");
-  }
+      setLoading: (value) => set({ isLoading: value }), // ⬅ setter simples
 
-  const newBook: Book = {
-    ...bookData,
-    id: crypto.randomUUID(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+      addBook: (bookData) => {
+        if (!bookData.title || !bookData.author) {
+          throw new Error("Título e autor são obrigatórios");
+        }
 
-  set((state) => ({ books: [...state.books, newBook] }));
-},
+        const newBook: Book = {
+          ...bookData,
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
 
-updateBook: (id, updates) => {
-  if (updates.title === "") throw new Error("Título não pode ser vazio");
-  if (updates.author === "") throw new Error("Autor não pode ser vazio");
+        set((state) => ({ books: [...state.books, newBook] }));
+      },
 
-  set((state) => ({
-    books: state.books.map((book) =>
-      book.id === id ? { ...book, ...updates, updatedAt: new Date() } : book
-    ),
-  }));
-},
+      updateBook: (id, updates) => {
+        if (updates.title === "") throw new Error("Título não pode ser vazio");
+        if (updates.author === "") throw new Error("Autor não pode ser vazio");
+
+        set((state) => ({
+          books: state.books.map((book) =>
+            book.id === id
+              ? { ...book, ...updates, updatedAt: new Date() }
+              : book
+          ),
+        }));
+      },
 
       deleteBook: (id) => {
         set((state) => ({

@@ -1,11 +1,12 @@
 "use client";
 
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useBookStore } from "@/lib/book-store";
 import { ReadingStatus } from "@/lib/types";
 import { Navigation } from "@/components/navigation";
-import { StatsCard } from "@/components/stats-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import Link from "next/link";
+import Image from "next/image";
 import {
   BookOpen,
   BookMarked,
@@ -14,21 +15,88 @@ import {
   Plus,
   TrendingUp,
 } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
-  const { books, getBooksByStatus } = useBookStore();
-  const [hydrated, setHydrated] = useState(false);
+  // store / dados (não alterei nada do seu store)
+  const books = useBookStore((s) => s.books);
+  const { getBooksByStatus } = useBookStore();
 
-  // Marcar componente como cliente
+  // ref do container para observar imagens do DOM
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  // mounted para evitar SSR mismatch
+  const [mounted, setMounted] = useState(false);
+
+  // isReady = true quando a "página está pronta" (imagens carregadas)
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
-    setHydrated(true);
-  }, []);
+    if (!mounted) return;
 
-  // Filtragens e cálculos
+    const container = rootRef.current ?? document;
+    const imgs = Array.from(container.querySelectorAll("img"));
+
+    if (imgs.length === 0) {
+      // nada para esperar: pronto imediatamente
+      setIsReady(true);
+      return;
+    }
+
+    let completed = 0;
+    let done = false;
+
+    const checkDone = () => {
+      if (done) return;
+      if (completed >= imgs.length) {
+        done = true;
+        setIsReady(true);
+      }
+    };
+
+    const onLoadOrError = () => {
+      completed += 1;
+      checkDone();
+    };
+
+    // marca imagens já completas
+    imgs.forEach((img) => {
+      if ((img as HTMLImageElement).complete) {
+        completed += 1;
+      } else {
+        img.addEventListener("load", onLoadOrError);
+        img.addEventListener("error", onLoadOrError);
+      }
+    });
+
+    checkDone();
+
+    // fallback por segurança (10s)
+    const timer = setTimeout(() => {
+      if (!done) {
+        done = true;
+        setIsReady(true);
+      }
+    }, 10000);
+
+    return () => {
+      clearTimeout(timer);
+      imgs.forEach((img) => {
+        img.removeEventListener("load", onLoadOrError);
+        img.removeEventListener("error", onLoadOrError);
+      });
+    };
+  }, [mounted, books]); // re-observa se books mudar (novas imagens)
+
+  // --- cálculos / hooks (sempre no topo, não dentro de `if`) ---
   const totalBooks = books.length;
   const currentlyReading = getBooksByStatus(ReadingStatus.LENDO);
   const finishedBooks = getBooksByStatus(ReadingStatus.LIDO);
@@ -46,14 +114,18 @@ export default function Dashboard() {
       .slice(0, 3);
   }, [books]);
 
-  if (!hydrated) return null; // evita SSR/CSR mismatch
+  // evita SSR/CSR mismatch
+  if (!mounted) return null;
 
+  // --- RENDER: sempre renderiza o conteúdo (para as imagens iniciarem o download),
+  // mas exibe um overlay com spinner até isReady === true ---
   return (
-    
-    <div className="min-h-screen bg-background">
+    <div ref={rootRef} className="min-h-screen bg-background relative">
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"> 
-         
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* === seu conteúdo original (copie/cole sua página inteira aqui) === */}
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground text-balance">
             Bem-vindo à sua Biblioteca Pessoal
@@ -65,37 +137,51 @@ export default function Dashboard() {
 
         {/* Statistics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatsCard
-            title="Total de Livros"
-            value={totalBooks}
-            description="Em sua biblioteca"
-            icon={BookOpen}
-          />
-          <StatsCard
-            title="Lendo Atualmente"
-            value={currentlyReading.length}
-            description="Livros em progresso"
-            icon={BookMarked}
-          />
-          <StatsCard
-            title="Livros Finalizados"
-            value={finishedBooks.length}
-            description="Leituras completas"
-            icon={CheckCircle}
-          />
-          <StatsCard
-            title="Páginas Lidas"
-            value={totalPagesRead.toLocaleString()}
-            description="Total acumulado"
-            icon={FileText}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-primary" />
+                Total de Livros
+              </CardTitle>
+            </CardHeader>
+            <CardContent>{totalBooks}</CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookMarked className="h-5 w-5 text-primary" />
+                Lendo Atualmente
+              </CardTitle>
+            </CardHeader>
+            <CardContent>{currentlyReading.length}</CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-primary" />
+                Livros Finalizados
+              </CardTitle>
+            </CardHeader>
+            <CardContent>{finishedBooks.length}</CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Páginas Lidas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>{totalPagesRead.toLocaleString()}</CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Currently Reading */}
           <Card className="lg:col-span-2">
-            <CardHeader> 
-        
+            <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookMarked className="h-5 w-5 text-primary" />
                 Lendo Atualmente
@@ -226,6 +312,16 @@ export default function Dashboard() {
           </Card>
         </div>
       </main>
+
+      {/* overlay com spinner enquanto NÃO estiver pronto */}
+      {!isReady && (
+        <div
+          aria-hidden
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+        >
+          <LoadingSpinner />
+        </div>
+      )}
     </div>
   );
 }
