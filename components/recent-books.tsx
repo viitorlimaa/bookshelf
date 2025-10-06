@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "./ui/badge"
-import type { Book } from "@/types"
+import type { Book } from "@/data/types"
 import Link from "next/link"
 import { Star } from "lucide-react"
 

@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 1.6: Status de Leitura como Enum
+enum ReadingStatus {
+  QUERO_LER
+  LENDO
+  LIDO
+  PAUSADO
+  ABANDONADO
+}
+
+// 1.4: Modelo de Livro Expandido
+model Book {
+  id       Int    @id @default(autoincrement())
+  title    String // Obrigatório
+  author   String // Obrigatório
+  year     Int // Obrigatório
+  pages    Int // Obrigatório
+  rating   Float // Obrigatório
+  synopsis String // Obrigatório
+  cover    String // Obrigatório
+
+  status      ReadingStatus @default(QUERO_LER) // Não obrigatório na criação (tem padrão)
+  currentPage Int // Obrigatório
+  createdAt   DateTime      @default(now()) // Não obrigatório na criação (tem padrão)
+  updatedAt   DateTime      @updatedAt // Não obrigatório na criação (gerado auto)
+
+  isbn  String? // Opcional
+  notes String? // Opcional
+
+  genres Genre[] // Relacionamento
+}
+
+// 1.5: Modelo de Gêneros
+model Genre {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  // Relacionamento com Livros
+  books Book[]
+}

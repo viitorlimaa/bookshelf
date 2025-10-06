@@ -2,15 +2,30 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { db } from "@/db";
-import type { Book } from "@/types";
+import { db } from "@/data/db";
+import type { Book } from "@/data/types";
 
 export async function createBook(
   data: Omit<Book, "id" | "createdAt" | "updatedAt">
 ) {
   try {
-    // Cast seguro, pois db.create adiciona os campos automaticamente
-    const newBook = await db.create(data as Omit<Book, "id">);
+    // Forçar valores padrão para campos obrigatórios
+    const payload = {
+      title: data.title,
+      author: data.author,
+      genres: data.genres || [],
+      year: data.year ?? 0,
+      pages: data.pages ?? 0,
+      rating: data.rating ?? 0,
+      synopsis: data.synopsis || "",
+      cover: data.cover || "",
+      currentPage: data.currentPage ?? 0,
+      status: data.status ?? "QUERO_LER",
+      isbn: data.isbn,
+      notes: data.notes,
+    };
+
+    const newBook = await db.create(payload);
 
     revalidatePath("/library");
     revalidatePath("/");

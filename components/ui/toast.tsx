@@ -1,9 +1,8 @@
-// components/ui/toaster.tsx
-"use client"
+"use client"; // importante para usar estado
 
 import * as React from "react"
 import * as ToastPrimitive from "@radix-ui/react-toast"
-import { cn } from "@/lib/utils"
+import { cn } from "@/data/utils"
 
 type ToastVariant = "default" | "success" | "error"
 
@@ -14,30 +13,22 @@ interface ToastOptions {
   variant?: ToastVariant
 }
 
-// =====================
-// Toast Context + Hook
-// =====================
-const ToastContext = React.createContext<{ toast: (options: ToastOptions) => void } | undefined>(undefined)
+const ToastContext = React.createContext<{
+  toast: (options: ToastOptions) => void
+} | undefined>(undefined)
 
 export const useToast = () => {
   const context = React.useContext(ToastContext)
-  if (!context) {
-    throw new Error("useToast must be used within a ToastProvider")
-  }
+  if (!context) throw new Error("useToast must be used within a Toaster")
   return context
 }
 
-// =====================
-// Toaster Component
-// =====================
 export const Toaster: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = React.useState<Array<ToastOptions & { id: string }>>([])
 
   const toast = (options: ToastOptions) => {
     const id = crypto.randomUUID()
     setToasts((prev) => [...prev, { ...options, id }])
-
-    // Remove toast após duration (default 4000ms)
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
     }, options.duration ?? 4000)

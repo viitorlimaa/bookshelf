@@ -1,4 +1,4 @@
-import { db } from "@/db";
+import { db } from "@/data/db";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,11 +21,11 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { DeleteBookButton } from "@/components/delete-book-button";
-import { getReadingProgress } from "@/lib/book-stats";
+import { getReadingProgress } from "@/data/book-stats";
 
 interface BookDetailsPageProps {
   params: Promise<{
-    id: string;
+    id: number;
   }>;
 }
 
@@ -58,17 +58,23 @@ export default async function BookDetailsPage({
     }
   };
 
-  return (
-    <div className="container max-w-5xl py-8 space-y-8 px-4 sm:px-6 lg:px-8">
+ return (
+  <div className="min-h-screen flex flex-col items-center justify-start py-10 px-4 sm:px-6 lg:px-8 bg-background">
+    {/* Container centralizado */}
+    <div className="w-full max-w-5xl space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 gap-2">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/library">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Voltar</span>
-          </Link>
-        </Button>
+        {/* Botão de voltar */}
+        <div className="flex-shrink-0">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/library">
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">Voltar</span>
+            </Link>
+          </Button>
+        </div>
 
+        {/* Título e autor */}
         <div className="flex-1 text-center sm:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-balance">
             {book.title}
@@ -78,9 +84,10 @@ export default async function BookDetailsPage({
           </p>
         </div>
 
+        {/* Ações (editar, deletar) */}
         <div className="flex justify-center sm:justify-end gap-2 mt-2 sm:mt-0">
           <Button asChild variant="outline">
-            <Link href={`/editar/${book.id}`}>
+            <Link href={`/edit/${book.id}`}>
               <Pencil className="mr-2 h-4 w-4" />
               Editar
             </Link>
@@ -89,7 +96,7 @@ export default async function BookDetailsPage({
         </div>
       </div>
 
-      {/* Grid de capa e info */}
+      {/* Grid de capa e informações */}
       <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
         {/* Capa */}
         <div className="md:col-span-1 w-full">
@@ -97,7 +104,7 @@ export default async function BookDetailsPage({
             <div className="relative aspect-[2/3] w-full">
               {book.cover ? (
                 <Image
-                  src={book.cover || "/placeholder.svg"}
+                  src={book.cover}
                   alt={`Capa do livro ${book.title}`}
                   fill
                   className="object-cover"
@@ -114,6 +121,7 @@ export default async function BookDetailsPage({
 
         {/* Informações */}
         <div className="md:col-span-2 space-y-6">
+          {/* Detalhes do livro */}
           <Card>
             <CardHeader>
               <CardTitle>Informações do Livro</CardTitle>
@@ -191,6 +199,7 @@ export default async function BookDetailsPage({
             </CardContent>
           </Card>
 
+          {/* Progresso de leitura */}
           {book.status && (
             <Card>
               <CardHeader>
@@ -261,5 +270,7 @@ export default async function BookDetailsPage({
         </Card>
       )}
     </div>
-  );
+  </div>
+);
+
 }

@@ -1,7 +1,7 @@
 "use server";
 
 import { createBook, deleteBook, updateBook } from "@/actions";
-import { Book } from "@/types";
+import { Book } from "@/data/types";
 import { revalidatePath } from "next/cache";
 
 export async function createBookAction(formData: FormData) {

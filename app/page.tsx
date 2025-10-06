@@ -1,5 +1,5 @@
-import { db } from "@/db"
-import { calculateBookStats } from "@/lib/book-stats"
+import { db } from "@/data/db"
+import { calculateBookStats } from "@/data/book-stats"
 import { BookOpen, BookMarked, CheckCircle2, FileText } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"

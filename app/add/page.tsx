@@ -1,23 +1,19 @@
 import { BookForm } from "@/components/book-form";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function AddBookPage() {
   return (
     <div className="min-h-screen flex flex-col items-center bg-background px-4 sm:px-6 lg:px-8 py-12">
       {/* Header com botão de voltar */}
       <div className="flex items-center w-full max-w-3xl mb-8">
-        <Link
-          href="/library"
-          className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md shadow-sm transition-colors duration-200"
-          style={{
-            backgroundColor: "var(--color-primary)",
-            color: "var(--color-primary-foreground)"
-          }}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
-        </Link>
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/library">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Voltar</span>
+          </Link>
+        </Button>
         <div className="ml-6">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance">
             Adicionar Novo Livro
