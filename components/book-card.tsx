@@ -95,7 +95,7 @@ export function BookCard({ book }: BookCardProps) {
       </CardContent>
 
       {/* Ações */}
-      <CardFooter className="flex gap-2 p-5 pt-0 border-t border-border/0 group-hover:border-border/50 transition-colors duration-300">
+      <CardFooter className="flex gap-2 p-5 pt-0 border-t border-transparent group-hover:border-border transition-colors duration-300">
         <Button
           asChild
           size="sm"
