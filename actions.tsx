@@ -56,7 +56,7 @@ export async function updateBook(
 
 export async function deleteBook(id: string) {
   try {
-    const deleted = await db.delete(id);
+    const deleted = await db.deleteBook(Number(id));
     if (!deleted) {
       return { success: false, error: "Livro não encontrado" };
     }

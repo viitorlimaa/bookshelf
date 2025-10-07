@@ -9,6 +9,16 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-}
 
-export default nextConfig
+  // 🔹 Adiciona proxy para evitar CORS em desenvolvimento
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "https://db-bookshelf.onrender.com/:path*", // proxy para o backend remoto
+      },
+    ];
+  },
+};
+
+export default nextConfig;

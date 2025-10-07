@@ -6,7 +6,6 @@ import { LibraryFilters } from "@/components/library-filters";
 import { parseGenre, parseReadingStatus } from "@/data/utils";
 import type { Book } from "@/data/types";
 import { LibraryToaster } from "@/components/ui/client-side";
-// nosso wrapper client-side
 
 interface LibraryPageProps {
   searchParams?: {
@@ -22,8 +21,10 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
   const genre = parseGenre(genreParam);
   const status = parseReadingStatus(statusParam);
 
+  // 🔹 Carrega todos os livros
   let books: Book[] = await db.getAll();
 
+  // 🔎 Filtro por busca
   if (query) {
     books = books.filter(
       (b) =>
@@ -32,15 +33,27 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
     );
   }
 
+  // 🎯 Filtro por gênero (corrigido e tipado)
   if (genre) {
     books = books.filter((b) => {
       const bookGenres = b.genres ?? (b.genre ? [b.genre] : []);
-      return bookGenres.some(
-        (g) => typeof g === "string" && g.toLowerCase() === genre.toLowerCase()
-      );
+
+      return bookGenres.some((g: string | { id: number; name: string }) => {
+        if (typeof g === "string") {
+          return g.toLowerCase() === genre.toLowerCase();
+        } else if (
+          typeof g === "object" &&
+          "name" in g &&
+          typeof g.name === "string"
+        ) {
+          return g.name.toLowerCase() === genre.toLowerCase();
+        }
+        return false;
+      });
     });
   }
 
+  // 📚 Filtro por status
   if (status) {
     books = books.filter((b) => b.status === status);
   }
@@ -59,7 +72,9 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
         </div>
 
         {/* Filtros */}
-        <Suspense fallback={<div className="text-center">Carregando filtros...</div>}>
+        <Suspense
+          fallback={<div className="text-center">Carregando filtros...</div>}
+        >
           <div className="w-full max-w-5xl mx-auto">
             <LibraryFilters />
           </div>

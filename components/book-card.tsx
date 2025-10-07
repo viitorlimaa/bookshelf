@@ -13,7 +13,14 @@ interface BookCardProps {
 
 export function BookCard({ book }: BookCardProps) {
   const rating = book.rating ?? 0
-  const genreName = book.genre || ""
+
+  // ✅ Corrigido: obtém o nome do gênero corretamente
+  const genreName =
+    Array.isArray(book.genres) && book.genres.length > 0
+      ? typeof book.genres[0] === "string"
+        ? book.genres[0]
+        : (book.genres[0] as any).name
+      : ""
 
   return (
     <Card className="group flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 hover:border-border">
@@ -43,7 +50,10 @@ export function BookCard({ book }: BookCardProps) {
         {/* Gênero e Ano */}
         <div className="flex flex-wrap items-center gap-2">
           {genreName && (
-            <Badge variant="secondary" className="text-xs font-medium px-2.5 py-0.5 rounded-md">
+            <Badge
+              variant="secondary"
+              className="text-xs font-medium px-2.5 py-0.5 rounded-md"
+            >
               {genreName}
             </Badge>
           )}
@@ -76,20 +86,34 @@ export function BookCard({ book }: BookCardProps) {
               }`}
             />
           ))}
-          {rating > 0 && <span className="ml-1.5 text-xs font-medium text-muted-foreground">{rating.toFixed(1)}</span>}
+          {rating > 0 && (
+            <span className="ml-1.5 text-xs font-medium text-muted-foreground">
+              {rating.toFixed(1)}
+            </span>
+          )}
         </div>
       </CardContent>
 
       {/* Ações */}
       <CardFooter className="flex gap-2 p-5 pt-0 border-t border-border/0 group-hover:border-border/50 transition-colors duration-300">
-        <Button asChild size="sm" variant="outline" className="flex-1 font-medium bg-transparent">
+        <Button
+          asChild
+          size="sm"
+          variant="outline"
+          className="flex-1 font-medium bg-transparent"
+        >
           <Link href={`/book/${book.id}`}>
             <Eye className="mr-2 h-4 w-4" />
             Ver
           </Link>
         </Button>
 
-        <Button asChild size="sm" variant="outline" className="font-medium bg-transparent">
+        <Button
+          asChild
+          size="sm"
+          variant="outline"
+          className="font-medium bg-transparent"
+        >
           <Link href={`/edit/${book.id}`}>
             <Pencil className="h-4 w-4" />
           </Link>

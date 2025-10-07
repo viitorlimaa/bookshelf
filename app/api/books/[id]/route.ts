@@ -10,7 +10,8 @@ export async function GET(
     if (isNaN(id))
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
 
-    const book = await db.getById(id);
+    const book = await db.getBook(Number(id));
+
     if (!book)
       return NextResponse.json(
         { error: "Livro não encontrado" },
@@ -64,7 +65,7 @@ export async function DELETE(
     if (isNaN(id))
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
 
-    const deleted = await db.delete(id);
+    const deleted = await db.deleteBook(id);
     if (!deleted)
       return NextResponse.json(
         { error: "Livro não encontrado" },

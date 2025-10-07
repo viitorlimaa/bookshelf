@@ -3,13 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import {
-  READING_STATUS,
-  GENRES,
-  type Book,
-  type ReadingStatus,
-} from "@/data/types";
-import { createBook, updateBook } from "@/actions";
+import { READING_STATUS, type Book, type ReadingStatus } from "@/data/types";
+import { db } from "@/data/db";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/text-area";
@@ -81,78 +76,82 @@ export function BookForm({ book }: Props) {
   });
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
-  // 🔹 Carregar gêneros da API (ou fallback)
+  // 🔹 Carrega os gêneros do backend
   useEffect(() => {
-    async function loadGenres() {
-      try {
-        const res = await fetch("https://db-bookshelf.onrender.com/genres");
-        if (!res.ok) throw new Error("Falha ao carregar gêneros");
-        const data = await res.json();
-        setGenresFromDb(
-          Array.isArray(data) && data.length > 0
-            ? data
-            : GENRES.map((g, i) => ({ id: i + 1, name: g }))
-        );
-      } catch (err) {
-        console.warn("⚠️ Falha ao carregar gêneros, usando fallback:", err);
-        setGenresFromDb(GENRES.map((g, i) => ({ id: i + 1, name: g })));
-      }
-    }
-    loadGenres();
+    db.getGenres()
+      .then((res) => {
+        const filtered = res.filter((g) => g.name && g.name.trim() !== "");
+        setGenresFromDb(filtered);
+      })
+      .catch((err) => console.error("❌ Erro ao carregar gêneros:", err));
   }, []);
 
-  // 🔹 Atualiza campo do formulário
+  // 🔹 Corrige renderização do gênero ao carregar book + gêneros
+  useEffect(() => {
+    if (!book || genresFromDb.length === 0) return;
+
+    const firstGenre = book.genres?.[0];
+    if (!firstGenre) return;
+
+    const genreName = typeof firstGenre === "string" ? firstGenre : firstGenre.name;
+    const exists = genresFromDb.some((g) => g.name === genreName);
+
+    if (exists && formData.genre !== genreName) {
+      setFormData((prev) => ({ ...prev, genre: genreName }));
+    }
+  }, [book, genresFromDb]); // garante renderização correta
+
   const updateField = (field: keyof FormState, value: string | number) => {
     setFormData((prev) => {
       const next = { ...prev, [field]: value } as FormState;
+
+      // Atualiza status automaticamente conforme progresso
       if (field === "currentPage" || field === "pages") {
         const total = Number(next.pages || 0);
         const cur = Number(next.currentPage || 0);
-        if (total > 0 && cur === total) next.status = "LIDO";
-        else if (total > 0 && cur > 0 && cur < total) next.status = "LENDO";
-        else if (cur === 0) next.status = "QUERO_LER";
+        const autoStatus =
+          total > 0 && cur === total
+            ? "LIDO"
+            : total > 0 && cur > 0
+            ? "LENDO"
+            : "QUERO_LER";
+        if (["QUERO_LER", "LENDO"].includes(String(next.status))) {
+          next.status = autoStatus;
+        }
       }
       return next;
     });
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  // 🔹 Calcula progresso
   const calculateProgress = () => {
-    const required = ["title", "author"];
-    const optional = [
+    const fields = [
+      "title",
+      "author",
       "genre",
       "year",
       "pages",
+      "currentPage",
       "status",
       "isbn",
       "cover",
+      "rating",
       "synopsis",
       "notes",
-      "rating",
-      "currentPage",
     ];
-    const all = [...required, ...optional];
-    const filled = all.filter((f) => {
+    const filled = fields.filter((f) => {
       const v = (formData as any)[f];
-      if (typeof v === "number") return v !== 0 && !isNaN(v);
-      return v !== "" && v !== undefined && v !== null;
+      if (v === null || v === undefined || v === "") return false;
+      if (!isNaN(Number(v))) return Number(v) > 0;
+      return true;
     }).length;
-    return Math.round((filled / all.length) * 100);
+    return Math.round((filled / fields.length) * 100);
   };
 
   const progress = calculateProgress();
 
-  // 🔹 Converte nomes de gêneros em IDs
-  const resolveGenreIds = (genres: string[]) =>
-    genres
-      .map((g) => genresFromDb.find((x) => x.name === g)?.id)
-      .filter((id): id is number => typeof id === "number");
-
-  // 🔹 Envio do formulário
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const newErrors: typeof errors = {};
     if (!formData.title?.trim()) newErrors.title = "Título é obrigatório";
     if (!formData.author?.trim()) newErrors.author = "Autor é obrigatório";
@@ -161,64 +160,41 @@ export function BookForm({ book }: Props) {
 
     setIsSubmitting(true);
     try {
-      // 🔧 Garante que genre seja sempre string[]
-      const genresArray =
-        formData.genre && formData.genre.trim() !== ""
-          ? [String(formData.genre)]
-          : [];
-      const genreIds = resolveGenreIds(genresArray);
+      const selectedGenre = genresFromDb.find((g) => g.name === formData.genre);
+      const genreIds = selectedGenre ? [selectedGenre.id] : [];
 
-      const rawPayload: Partial<Omit<Book, "id" | "createdAt" | "updatedAt">> =
-        {
-          title: formData.title.trim(),
-          author: formData.author.trim(),
-          year: formData.year ? parseInt(formData.year, 10) : undefined,
-          pages: formData.pages ? parseInt(formData.pages, 10) : undefined,
-          currentPage: formData.currentPage
-            ? parseInt(formData.currentPage, 10)
-            : undefined,
-          status:
-            ["QUERO_LER", "LENDO", "LIDO", "PAUSADO", "ABANDONADO"].includes(
-              String(formData.status)
-            )
-              ? (formData.status as ReadingStatus)
-              : "QUERO_LER",
-          isbn: formData.isbn?.trim() || undefined,
-          cover:
-            formData.cover?.trim() || "https://via.placeholder.com/150",
-          rating:
-            typeof formData.rating === "number" && !isNaN(formData.rating)
-              ? formData.rating
-              : 0,
-          synopsis: formData.synopsis?.trim() || "Sem sinopse",
-          notes: formData.notes?.trim() || undefined,
-          genreIds, // <- envia IDs
-        };
-
-      const payload = Object.fromEntries(
-        Object.entries(rawPayload).filter(([_, v]) => v !== undefined)
-      ) as Omit<Book, "id" | "createdAt" | "updatedAt">;
+      // 🔹 Payload final
+      const payload = {
+        title: formData.title.trim(),
+        author: formData.author.trim(),
+        year: parseInt(formData.year || "0", 10),
+        pages: parseInt(formData.pages || "0", 10),
+        currentPage: parseInt(formData.currentPage || "0", 10),
+        status: formData.status as ReadingStatus,
+        isbn: formData.isbn?.trim() || undefined,
+        cover: formData.cover?.trim() || "https://via.placeholder.com/150",
+        rating: Number(formData.rating) || 0,
+        synopsis: formData.synopsis?.trim() || "Sem sinopse",
+        notes: formData.notes?.trim() || undefined,
+        genreIds,
+      };
 
       console.log("📤 Payload enviado:", payload);
 
-      const result = book
-        ? await updateBook(book.id, payload)
-        : await createBook(payload);
-
-      if (result?.success) {
-        toast({
-          title: book ? "Livro atualizado" : "Livro adicionado",
-          description: `"${formData.title}" salvo com sucesso.`,
-          variant: "success",
-        });
-        router.push("/library");
+      if (book) {
+        await db.updateBook(book.id, payload);
       } else {
-        toast({
-          title: "Erro",
-          description: result?.error || "Não foi possível salvar.",
-          variant: "error",
-        });
+        await db.createBook(payload);
       }
+
+      toast({
+        title: book ? "Livro atualizado" : "Livro adicionado",
+        description: `"${formData.title}" salvo com sucesso.`,
+        variant: "success",
+      });
+
+      router.push("/library");
+      router.refresh();
     } catch (err) {
       console.error("❌ Erro ao salvar livro:", err);
       toast({
@@ -231,7 +207,6 @@ export function BookForm({ book }: Props) {
     }
   };
 
-  // 🔹 UI
   return (
     <form
       onSubmit={handleSubmit}
@@ -263,11 +238,8 @@ export function BookForm({ book }: Props) {
                 id="title"
                 value={formData.title}
                 onChange={(e) => updateField("title", e.target.value)}
-                className={errors.title ? "border-red-500" : ""}
               />
-              {errors.title && (
-                <p className="text-destructive text-sm">{errors.title}</p>
-              )}
+              {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
             </div>
             <div>
               <Label htmlFor="author">Autor *</Label>
@@ -275,11 +247,8 @@ export function BookForm({ book }: Props) {
                 id="author"
                 value={formData.author}
                 onChange={(e) => updateField("author", e.target.value)}
-                className={errors.author ? "border-red-500" : ""}
               />
-              {errors.author && (
-                <p className="text-destructive text-sm">{errors.author}</p>
-              )}
+              {errors.author && <p className="text-red-500 text-sm mt-1">{errors.author}</p>}
             </div>
           </div>
 
@@ -288,21 +257,28 @@ export function BookForm({ book }: Props) {
             <div>
               <Label htmlFor="genre">Gênero</Label>
               <Select
-                value={formData.genre}
+                value={formData.genre || undefined}
                 onValueChange={(v) => updateField("genre", v)}
               >
                 <SelectTrigger id="genre">
                   <SelectValue placeholder="Selecione o gênero" />
                 </SelectTrigger>
                 <SelectContent>
-                  {genresFromDb.map((g) => (
-                    <SelectItem key={g.id} value={g.name}>
-                      {g.name}
-                    </SelectItem>
-                  ))}
+                  {genresFromDb.length > 0 ? (
+                    genresFromDb.map((g) => (
+                      <SelectItem key={g.id} value={g.name}>
+                        {g.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-2 text-sm text-gray-500">
+                      Carregando gêneros...
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
+
             <div>
               <Label>Avaliação</Label>
               <div className="flex gap-1 mt-1">
@@ -373,6 +349,7 @@ export function BookForm({ book }: Props) {
                 </SelectContent>
               </Select>
             </div>
+
             <div>
               <Label>ISBN</Label>
               <Input
@@ -380,6 +357,7 @@ export function BookForm({ book }: Props) {
                 onChange={(e) => updateField("isbn", e.target.value)}
               />
             </div>
+
             <div>
               <Label>Capa (URL)</Label>
               <Input
