@@ -1,7 +1,7 @@
 // components/ui/alert-dialog/index.tsx
 import * as React from "react"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
-import { cn } from "@/lib/utils"
+import { cn } from "@/data/utils"
 
 // Reexportando subcomponentes com estilos
 const AlertDialog = AlertDialogPrimitive.Root

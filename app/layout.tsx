@@ -6,14 +6,12 @@ import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
-import { Toaster } from "@/components/ui/toaster"
-import { Suspense } from "react"
 import "./globals.css"
+import { Toaster } from "@/components/ui/toast"
 
 export const metadata: Metadata = {
   title: "BookShelf - Sua Biblioteca Pessoal",
   description: "Gerencie sua biblioteca pessoal, acompanhe leituras e organize seus livros",
-  generator: "v0.app",
 }
 
 export default function RootLayout({
@@ -24,19 +22,16 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <ThemeProvider defaultTheme="system" storageKey="bookshelf-theme">
-          <Suspense fallback={null}>
-            <div className="relative flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-            </div>
-
-            {/* Toaster integrado */}
-            <Toaster />
-          </Suspense>
-        </ThemeProvider>
-        <Analytics />
-      </body>
+  <ThemeProvider defaultTheme="system" storageKey="bookshelf-theme">
+    <Toaster>
+      <div className="relative flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1">{children}</main>
+      </div>
+    </Toaster>
+  </ThemeProvider>
+  <Analytics/>
+</body>
     </html>
   )
 }

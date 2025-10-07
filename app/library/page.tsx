@@ -1,63 +1,77 @@
-import { db } from "@/db"
-import { BookGrid } from "@/components/book-grid"
-import { LibraryFilters } from "@/components/library-filters"
-import { Suspense } from "react"
-import { BookGridSkeleton } from "@/components/book-grid-skeleton"
-import { parseGenre, parseReadingStatus } from "@/lib/utils"
+import { Suspense } from "react";
+import { db } from "@/data/db";
+import { BookGrid } from "@/components/book-grid";
+import { BookGridSkeleton } from "@/components/book-grid-skeleton";
+import { LibraryFilters } from "@/components/library-filters";
+import { parseGenre, parseReadingStatus } from "@/data/utils";
+import type { Book } from "@/data/types";
+import { LibraryToaster } from "@/components/ui/client-side";
+// nosso wrapper client-side
 
 interface LibraryPageProps {
-  searchParams: Promise<{
-    query?: string
-    genre?: string
-    status?: string
-  }>
+  searchParams?: {
+    query?: string;
+    genre?: string;
+    status?: string;
+  };
 }
 
 export default async function LibraryPage({ searchParams }: LibraryPageProps) {
-  const params = await searchParams
-  const { query, genre: genreParam, status: statusParam } = params
+  const { query, genre: genreParam, status: statusParam } = searchParams || {};
 
-  // Converte strings para tipos corretos
-  const genre = parseGenre(genreParam)
-  const status = parseReadingStatus(statusParam)
+  const genre = parseGenre(genreParam);
+  const status = parseReadingStatus(statusParam);
 
-  let books = await db.getAll()
+  let books: Book[] = await db.getAll();
 
-  // Aplica filtros
   if (query) {
-    books = await db.search(query)
-  } else if (genre) {
-    books = await db.filterByGenre(genre)
-  } else if (status) {
-    books = await db.filterByStatus(status)
+    books = books.filter(
+      (b) =>
+        b.title.toLowerCase().includes(query.toLowerCase()) ||
+        b.author.toLowerCase().includes(query.toLowerCase())
+    );
+  }
+
+  if (genre) {
+    books = books.filter((b) => {
+      const bookGenres = b.genres ?? (b.genre ? [b.genre] : []);
+      return bookGenres.some(
+        (g) => typeof g === "string" && g.toLowerCase() === genre.toLowerCase()
+      );
+    });
+  }
+
+  if (status) {
+    books = books.filter((b) => b.status === status);
   }
 
   return (
-  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-    {/* Cabeçalho */}
-    <div className="space-y-2 text-center sm:text-left">
-      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight text-balance">
-        Biblioteca
-      </h1>
-      <p className="text-sm sm:text-base text-muted-foreground text-pretty">
-        Explore e gerencie sua coleção de livros
-      </p>
-    </div>
+    <LibraryToaster>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Cabeçalho */}
+        <div className="space-y-2 text-center sm:text-left">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight text-balance">
+            Biblioteca
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground text-pretty">
+            Explore e gerencie sua coleção de livros
+          </p>
+        </div>
 
-    {/* Filtros */}
-    <Suspense fallback={<div className="text-center">Carregando filtros...</div>}>
-      <div className="w-full max-w-5xl mx-auto">
-        <LibraryFilters />
+        {/* Filtros */}
+        <Suspense fallback={<div className="text-center">Carregando filtros...</div>}>
+          <div className="w-full max-w-5xl mx-auto">
+            <LibraryFilters />
+          </div>
+        </Suspense>
+
+        {/* Grade de Livros */}
+        <Suspense fallback={<BookGridSkeleton />}>
+          <div className="w-full max-w-6xl mx-auto">
+            <BookGrid books={books} />
+          </div>
+        </Suspense>
       </div>
-    </Suspense>
-
-    {/* Grade de Livros */}
-    <Suspense fallback={<BookGridSkeleton />}>
-      <div className="w-full max-w-6xl mx-auto">
-        <BookGrid books={books} />
-      </div>
-    </Suspense>
-  </div>
-);
-
+    </LibraryToaster>
+  );
 }

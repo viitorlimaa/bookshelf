@@ -2,7 +2,7 @@
 
 import { Input } from "./ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { GENRES, READING_STATUS } from "@/types"
+import { GENRES, READING_STATUS } from "@/data/types"
 import { Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "./ui/button"

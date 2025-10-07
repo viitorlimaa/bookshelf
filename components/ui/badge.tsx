@@ -1,6 +1,6 @@
 import type * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
+import { cn } from "@/data/utils";
 import type { LucideIcon } from "lucide-react";
 
 const badgeVariants = cva(

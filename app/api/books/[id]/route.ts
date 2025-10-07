@@ -1,22 +1,29 @@
-import { db } from "@/db"
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
+import { db } from "@/data/db";
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params
-    const book = await db.getById(id)
+    const id = Number(params.id);
+    if (isNaN(id))
+      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
 
-    if (!book) {
-      return NextResponse.json({ error: "Livro não encontrado" }, { status: 404 })
-    }
+    const book = await db.getById(id);
+    if (!book)
+      return NextResponse.json(
+        { error: "Livro não encontrado" },
+        { status: 404 }
+      );
 
-    return NextResponse.json(book)
+    return NextResponse.json(book);
   } catch (error) {
-    console.error("Error fetching book:", error)
-    return NextResponse.json({ error: "Erro ao buscar livro" }, { status: 500 })
+    console.error("Error fetching book:", error);
+    return NextResponse.json(
+      { error: "Erro ao buscar livro" },
+      { status: 500 }
+    );
   }
 }
 
@@ -25,37 +32,51 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params
-    const body = await request.json()
+    const id = Number(params.id);
+    if (isNaN(id))
+      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
 
-    const updatedBook = await db.update(id, body)
+    const body = await request.json();
+    const updatedBook = await db.update(id, body);
 
-    if (!updatedBook) {
-      return NextResponse.json({ error: "Livro não encontrado" }, { status: 404 })
-    }
+    if (!updatedBook)
+      return NextResponse.json(
+        { error: "Livro não encontrado" },
+        { status: 404 }
+      );
 
-    return NextResponse.json(updatedBook)
+    return NextResponse.json(updatedBook);
   } catch (error) {
-    console.error("Error updating book:", error)
-    return NextResponse.json({ error: "Erro ao atualizar livro" }, { status: 500 })
+    console.error("Error updating book:", error);
+    return NextResponse.json(
+      { error: "Erro ao atualizar livro" },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params
-    const deleted = await db.delete(id)
+    const id = Number(params.id);
+    if (isNaN(id))
+      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
 
-    if (!deleted) {
-      return NextResponse.json({ error: "Livro não encontrado" }, { status: 404 })
-    }
+    const deleted = await db.delete(id);
+    if (!deleted)
+      return NextResponse.json(
+        { error: "Livro não encontrado" },
+        { status: 404 }
+      );
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting book:", error)
-    return NextResponse.json({ error: "Erro ao deletar livro" }, { status: 500 })
+    console.error("Error deleting book:", error);
+    return NextResponse.json(
+      { error: "Erro ao deletar livro" },
+      { status: 500 }
+    );
   }
 }
