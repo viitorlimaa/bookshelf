@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   READING_STATUS,
   GENRES,
-  type Book as FrontendBook,
+  type Book,
   type ReadingStatus,
 } from "@/data/types";
 import { createBook, updateBook } from "@/actions";
@@ -35,8 +35,9 @@ interface ApiGenre {
   id: number;
   name: string;
 }
+
 interface Props {
-  book?: FrontendBook;
+  book?: Book;
 }
 
 type FormState = {
@@ -62,7 +63,12 @@ export function BookForm({ book }: Props) {
   const [formData, setFormData] = useState<FormState>({
     title: book?.title || "",
     author: book?.author || "",
-    genre: book?.genre || "",
+    genre:
+      book?.genres && book.genres.length > 0
+        ? typeof book.genres[0] === "string"
+          ? book.genres[0]
+          : (book.genres[0] as any).name
+        : "",
     year: book?.year?.toString() || "",
     pages: book?.pages?.toString() || "",
     currentPage: book?.currentPage?.toString() || "",
@@ -75,24 +81,27 @@ export function BookForm({ book }: Props) {
   });
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
+  // 🔹 Carregar gêneros da API (ou fallback)
   useEffect(() => {
     async function loadGenres() {
       try {
-        const res = await fetch("/api/categories/genres");
+        const res = await fetch("https://db-bookshelf.onrender.com/genres");
         if (!res.ok) throw new Error("Falha ao carregar gêneros");
         const data = await res.json();
         setGenresFromDb(
           Array.isArray(data) && data.length > 0
             ? data
-            : GENRES.map((g, i) => ({ id: i, name: g }))
+            : GENRES.map((g, i) => ({ id: i + 1, name: g }))
         );
-      } catch {
-        setGenresFromDb(GENRES.map((g, i) => ({ id: i, name: g })));
+      } catch (err) {
+        console.warn("⚠️ Falha ao carregar gêneros, usando fallback:", err);
+        setGenresFromDb(GENRES.map((g, i) => ({ id: i + 1, name: g })));
       }
     }
     loadGenres();
   }, []);
 
+  // 🔹 Atualiza campo do formulário
   const updateField = (field: keyof FormState, value: string | number) => {
     setFormData((prev) => {
       const next = { ...prev, [field]: value } as FormState;
@@ -108,6 +117,7 @@ export function BookForm({ book }: Props) {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
+  // 🔹 Calcula progresso
   const calculateProgress = () => {
     const required = ["title", "author"];
     const optional = [
@@ -133,8 +143,16 @@ export function BookForm({ book }: Props) {
 
   const progress = calculateProgress();
 
+  // 🔹 Converte nomes de gêneros em IDs
+  const resolveGenreIds = (genres: string[]) =>
+    genres
+      .map((g) => genresFromDb.find((x) => x.name === g)?.id)
+      .filter((id): id is number => typeof id === "number");
+
+  // 🔹 Envio do formulário
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const newErrors: typeof errors = {};
     if (!formData.title?.trim()) newErrors.title = "Título é obrigatório";
     if (!formData.author?.trim()) newErrors.author = "Autor é obrigatório";
@@ -143,35 +161,45 @@ export function BookForm({ book }: Props) {
 
     setIsSubmitting(true);
     try {
-      const validStatus: ReadingStatus[] = [
-        "QUERO_LER",
-        "LENDO",
-        "LIDO",
-        "PAUSADO",
-        "ABANDONADO",
-      ];
+      // 🔧 Garante que genre seja sempre string[]
+      const genresArray =
+        formData.genre && formData.genre.trim() !== ""
+          ? [String(formData.genre)]
+          : [];
+      const genreIds = resolveGenreIds(genresArray);
 
-      const payload: Omit<FrontendBook, "id" | "createdAt" | "updatedAt"> = {
-        title: formData.title.trim(),
-        author: formData.author.trim(),
-        genres: formData.genre ? [formData.genre] : [],
-        year: formData.year ? parseInt(formData.year, 10) : undefined,
-        pages: formData.pages ? parseInt(formData.pages, 10) : undefined,
-        currentPage: formData.currentPage
-          ? parseInt(formData.currentPage, 10)
-          : undefined,
-        status: validStatus.includes(formData.status as ReadingStatus)
-          ? (formData.status as ReadingStatus)
-          : "QUERO_LER",
-        isbn: formData.isbn?.trim() || undefined,
-        cover: formData.cover?.trim() || undefined,
-        rating:
-          typeof formData.rating === "number" && !isNaN(formData.rating)
-            ? formData.rating
-            : 0,
-        synopsis: formData.synopsis?.trim() || undefined,
-        notes: formData.notes?.trim() || undefined,
-      };
+      const rawPayload: Partial<Omit<Book, "id" | "createdAt" | "updatedAt">> =
+        {
+          title: formData.title.trim(),
+          author: formData.author.trim(),
+          year: formData.year ? parseInt(formData.year, 10) : undefined,
+          pages: formData.pages ? parseInt(formData.pages, 10) : undefined,
+          currentPage: formData.currentPage
+            ? parseInt(formData.currentPage, 10)
+            : undefined,
+          status:
+            ["QUERO_LER", "LENDO", "LIDO", "PAUSADO", "ABANDONADO"].includes(
+              String(formData.status)
+            )
+              ? (formData.status as ReadingStatus)
+              : "QUERO_LER",
+          isbn: formData.isbn?.trim() || undefined,
+          cover:
+            formData.cover?.trim() || "https://via.placeholder.com/150",
+          rating:
+            typeof formData.rating === "number" && !isNaN(formData.rating)
+              ? formData.rating
+              : 0,
+          synopsis: formData.synopsis?.trim() || "Sem sinopse",
+          notes: formData.notes?.trim() || undefined,
+          genreIds, // <- envia IDs
+        };
+
+      const payload = Object.fromEntries(
+        Object.entries(rawPayload).filter(([_, v]) => v !== undefined)
+      ) as Omit<Book, "id" | "createdAt" | "updatedAt">;
+
+      console.log("📤 Payload enviado:", payload);
 
       const result = book
         ? await updateBook(book.id, payload)
@@ -179,7 +207,7 @@ export function BookForm({ book }: Props) {
 
       if (result?.success) {
         toast({
-          title: book ? "Livro atualizado" : "Livro criado",
+          title: book ? "Livro atualizado" : "Livro adicionado",
           description: `"${formData.title}" salvo com sucesso.`,
           variant: "success",
         });
@@ -192,7 +220,7 @@ export function BookForm({ book }: Props) {
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error("❌ Erro ao salvar livro:", err);
       toast({
         title: "Erro",
         description: "Erro ao salvar o livro.",
@@ -203,6 +231,7 @@ export function BookForm({ book }: Props) {
     }
   };
 
+  // 🔹 UI
   return (
     <form
       onSubmit={handleSubmit}
@@ -215,10 +244,7 @@ export function BookForm({ book }: Props) {
           <CardDescription>{progress}% completo</CardDescription>
         </CardHeader>
         <CardContent>
-          <Progress
-            value={progress}
-            className="h-3 w-full rounded-full bg-gray-200 dark:bg-gray-700"
-          />
+          <Progress value={progress} className="h-3 w-full rounded-full" />
         </CardContent>
       </Card>
 

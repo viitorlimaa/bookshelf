@@ -1,180 +1,160 @@
-import { PrismaClient } from "@prisma/client";
-import type { Book as FrontendBook, ReadingStatus } from "@/data/types";
+// db.ts
+import type { Book, Genre, ReadingStatus } from "@/data/types";
 
-const prisma = new PrismaClient();
+const API_BASE = "https://db-bookshelf.onrender.com";
 
-// ===============================
-//  Função de mapeamento
-// ===============================
-function mapBookPrismaToBook(prismaBook: any): FrontendBook {
-  const genresArray = prismaBook.genres?.map((g: any) => g.name) ?? [];
+/* ========================================================
+   🔹 Função utilitária genérica para requisições JSON
+======================================================== */
+async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
+  });
 
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Erro na API: ${res.status} ${res.statusText} - ${text}`);
+
+  return JSON.parse(text);
+}
+
+/* ========================================================
+   🔹 Função auxiliar para converter nomes de gênero em IDs
+======================================================== */
+async function resolveGenreIds(genres?: (string | number)[]): Promise<number[]> {
+  if (!genres) return [];
+  const allGenres = await db.getGenres();
+  return genres.map((g) => {
+    if (typeof g === "number") return g;
+    const found = allGenres.find((ag) => ag.name === g);
+    if (!found) throw new Error(`Gênero desconhecido: ${g}`);
+    return found.id;
+  });
+}
+
+/* ========================================================
+   🔹 Conversão do formato da API → formato interno
+======================================================== */
+function mapBookApiToBook(apiBook: any): Book {
+  const genresArray: string[] = apiBook.genres?.map((g: any) => g.name ?? g) ?? [];
   return {
-    id: prismaBook.id.toString(),
-    title: prismaBook.title,
-    author: prismaBook.author,
-    genre: genresArray[0] ?? "", // compatibilidade com versões antigas
-    genres: genresArray, // novo campo
-    year: prismaBook.year,
-    isbn: prismaBook.isbn ?? undefined,
-    status: prismaBook.status as ReadingStatus,
-    pages: prismaBook.pages,
-    currentPage: prismaBook.currentPage,
-    rating: prismaBook.rating ?? 0,
-    cover: prismaBook.cover,
-    synopsis: prismaBook.synopsis,
-    notes: prismaBook.notes ?? undefined,
-    createdAt: prismaBook.createdAt.toISOString(),
-    updatedAt: prismaBook.updatedAt.toISOString(),
+    id: String(apiBook.id),
+    title: apiBook.title,
+    author: apiBook.author,
+    genre: genresArray[0] ?? "",
+    genres: genresArray,
+    year: apiBook.year,
+    isbn: apiBook.isbn ?? undefined,
+    status: apiBook.status as ReadingStatus,
+    pages: apiBook.pages,
+    currentPage: apiBook.currentPage,
+    rating: apiBook.rating ?? 0,
+    cover: apiBook.cover,
+    synopsis: apiBook.synopsis,
+    notes: apiBook.notes ?? undefined,
+    createdAt: apiBook.createdAt ?? new Date().toISOString(),
+    updatedAt: apiBook.updatedAt ?? new Date().toISOString(),
   };
 }
 
-function mapBooksPrismaToBooks(prismaBooks: any[]): FrontendBook[] {
-  return prismaBooks.map(mapBookPrismaToBook);
-}
-
-// ===============================
-//  Utilitário de ID
-// ===============================
-function toNumberId(id: string | number): number | null {
-  const numericId = typeof id === "string" ? parseInt(id, 10) : id;
-  return isNaN(numericId) ? null : numericId;
-}
-
-// ===============================
-//  Banco de dados
-// ===============================
+/* ========================================================
+   🔹 API principal
+======================================================== */
 export const db = {
-  async getAll() {
-    const books = await prisma.book.findMany({ include: { genres: true } });
-    return mapBooksPrismaToBooks(books);
+  async getGenres(): Promise<Genre[]> {
+    try {
+      const data = await fetchJSON<Genre[]>(`${API_BASE}/genres`);
+      if (Array.isArray(data) && data.length > 0) return data;
+    } catch (err) {
+      console.warn("⚠️ Falha ao carregar gêneros remotos, usando fallback");
+    }
+
+    return [
+      { id: 1, name: "Literatura Brasileira" },
+      { id: 2, name: "Ficção Científica" },
+      { id: 3, name: "Realismo Mágico" },
+      { id: 4, name: "Ficção" },
+      { id: 5, name: "Fantasia" },
+      { id: 6, name: "Romance" },
+      { id: 7, name: "Biografia" },
+      { id: 8, name: "História" },
+      { id: 9, name: "Autoajuda" },
+      { id: 10, name: "Tecnologia" },
+      { id: 11, name: "Programação" },
+      { id: 12, name: "Negócios" },
+      { id: 13, name: "Psicologia" },
+      { id: 14, name: "Filosofia" },
+      { id: 15, name: "Poesia" },
+      { id: 16, name: "Mistério" },
+    ];
   },
+async create(data: Partial<Book>): Promise<Book> {
+  // 1️⃣ Resolve IDs numéricos
+  const genreIds = await resolveGenreIds(data.genres);
 
-  async getById(id: string | number) {
-    const numericId = toNumberId(id);
-    if (numericId === null) return null;
+  // 2️⃣ Monta payload
+  const payload: any = {
+    ...data,
+    genreIds,
+    cover: data.cover || "https://via.placeholder.com/150",
+    synopsis: data.synopsis || "Sem sinopse",
+  };
+  delete payload.genres;
 
-    const book = await prisma.book.findUnique({
-      where: { id: numericId },
-      include: { genres: true },
-    });
+  // 3️⃣ Envia para o backend
+  const newBook = await fetchJSON<any>(`${API_BASE}/books`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 
-    return book ? mapBookPrismaToBook(book) : null;
-  },
+  return mapBookApiToBook(newBook);
+}
+,
 
-  async create(data: {
-    title: string;
-    author: string;
-    year: number;
-    pages: number;
-    rating: number;
-    synopsis: string;
-    cover: string;
-    currentPage: number;
-    status?: ReadingStatus;
-    isbn?: string;
-    notes?: string;
-    genres?: string[];
-  }) {
-    const book = await prisma.book.create({
-      data: {
-        title: data.title,
-        author: data.author,
-        year: data.year,
-        pages: data.pages,
-        rating: data.rating,
-        synopsis: data.synopsis,
-        cover: data.cover,
-        currentPage: data.currentPage,
-        status: data.status ?? "QUERO_LER",
-        isbn: data.isbn,
-        notes: data.notes,
-        genres: data.genres?.length
-          ? {
-              connectOrCreate: data.genres.map((name) => ({
-                where: { name },
-                create: { name },
-              })),
-            }
-          : undefined,
-      },
-      include: { genres: true },
-    });
-
-    return mapBookPrismaToBook(book);
-  },
-
-  async update(id: string | number, data: any) {
-    const numericId = toNumberId(id);
-    if (numericId === null) return null;
-
-    const book = await prisma.book.update({
-      where: { id: numericId },
-      data: {
+  async update(id: string | number, data: Partial<Book>): Promise<Book | null> {
+    try {
+      const genreIds = await resolveGenreIds(data.genres);
+      const payload: any = {
         ...data,
-        genres: data.genres?.length
-          ? {
-              set: [],
-              connectOrCreate: data.genres.map((name: string) => ({
-                where: { name },
-                create: { name },
-              })),
-            }
-          : undefined,
-      },
-      include: { genres: true },
-    });
+        cover: data.cover || "https://via.placeholder.com/150",
+        synopsis: data.synopsis || "Sem sinopse",
+        genreIds,
+      };
+      delete payload.genres;
 
-    return mapBookPrismaToBook(book);
+      const updated = await fetchJSON<any>(`${API_BASE}/books/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      return mapBookApiToBook(updated);
+    } catch (err) {
+      console.error("❌ Erro ao atualizar livro:", err);
+      return null;
+    }
   },
 
-  async delete(id: string | number) {
-    const numericId = toNumberId(id);
-    if (numericId === null) return false;
-
-    await prisma.book.delete({ where: { id: numericId } });
-    return true;
+  async getAll(): Promise<Book[]> {
+    const data = await fetchJSON<any[]>(`${API_BASE}/books`);
+    return data.map(mapBookApiToBook);
   },
 
-  async search(query: string) {
-    const q = query.toLowerCase();
-    const books = await prisma.book.findMany({ include: { genres: true } });
-    const filtered = books.filter(
-      (b) =>
-        b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q)
-    );
-    return mapBooksPrismaToBooks(filtered);
+  async getById(id: string | number): Promise<Book | null> {
+    try {
+      const data = await fetchJSON<any>(`${API_BASE}/books/${id}`);
+      return mapBookApiToBook(data);
+    } catch {
+      return null;
+    }
   },
 
-  async filterByGenre(genre: string) {
-    const books = await prisma.book.findMany({
-      where: { genres: { some: { name: genre } } },
-      include: { genres: true },
-    });
-    return mapBooksPrismaToBooks(books);
-  },
-
-  async filterByStatus(status: ReadingStatus) {
-    const books = await prisma.book.findMany({
-      where: { status },
-      include: { genres: true },
-    });
-    return mapBooksPrismaToBooks(books);
-  },
-
-  async getGenres() {
-    return prisma.genre.findMany();
-  },
-
-  async addGenre(name: string) {
-    return prisma.genre.create({ data: { name } });
-  },
-
-  async removeGenre(id: string | number) {
-    const numericId = toNumberId(id);
-    if (numericId === null) return false;
-
-    await prisma.genre.delete({ where: { id: numericId } });
-    return true;
+  async delete(id: string | number): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/books/${id}`, { method: "DELETE" });
+      return res.ok;
+    } catch {
+      return false;
+    }
   },
 };

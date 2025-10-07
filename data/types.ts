@@ -20,6 +20,7 @@ export interface Book {
   author: string;
   genre?: string; 
   genres?: string[];
+   genreIds?: number[]; // <-- adicione
   year?: number;
   isbn?: string;
   status?: ReadingStatus;
