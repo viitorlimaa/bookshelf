@@ -79,7 +79,7 @@ export function BookForm({ book }: Props) {
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const res = await fetch("/api/genres");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/genres`);
         if (!res.ok) throw new Error("Erro ao buscar gêneros");
         const data: ApiGenre[] = await res.json();
         const filtered = data.filter((g) => g.name && g.name.trim() !== "");
