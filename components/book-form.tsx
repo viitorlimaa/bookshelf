@@ -76,15 +76,20 @@ export function BookForm({ book }: Props) {
   });
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
-  // 🔹 Carrega os gêneros via API
   useEffect(() => {
-    fetch("/api/genres")
-      .then((res) => res.json())
-      .then((res: ApiGenre[]) => {
-        const filtered = res.filter((g) => g.name && g.name.trim() !== "");
+    const fetchGenres = async () => {
+      try {
+        const res = await fetch("/api/genres");
+        if (!res.ok) throw new Error("Erro ao buscar gêneros");
+        const data: ApiGenre[] = await res.json();
+        const filtered = data.filter((g) => g.name && g.name.trim() !== "");
         setGenresFromDb(filtered);
-      })
-      .catch((err) => console.error("❌ Erro ao carregar gêneros:", err));
+      } catch (err) {
+        console.error("❌ Erro ao carregar gêneros:", err);
+      }
+    };
+
+    fetchGenres();
   }, []);
 
   const updateField = (field: keyof FormState, value: string | number) => {
@@ -228,7 +233,9 @@ export function BookForm({ book }: Props) {
                 value={formData.title}
                 onChange={(e) => updateField("title", e.target.value)}
               />
-              {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+              {errors.title && (
+                <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="author">Autor *</Label>
@@ -237,7 +244,9 @@ export function BookForm({ book }: Props) {
                 value={formData.author}
                 onChange={(e) => updateField("author", e.target.value)}
               />
-              {errors.author && <p className="text-red-500 text-sm mt-1">{errors.author}</p>}
+              {errors.author && (
+                <p className="text-red-500 text-sm mt-1">{errors.author}</p>
+              )}
             </div>
           </div>
 
@@ -260,7 +269,9 @@ export function BookForm({ book }: Props) {
                       </SelectItem>
                     ))
                   ) : (
-                    <div className="p-2 text-sm text-gray-500">Carregando gêneros...</div>
+                    <div className="p-2 text-sm text-gray-500">
+                      Carregando gêneros...
+                    </div>
                   )}
                 </SelectContent>
               </Select>
@@ -388,7 +399,11 @@ export function BookForm({ book }: Props) {
 
       {/* Botões */}
       <div className="flex gap-4 flex-col sm:flex-row">
-        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full sm:w-auto"
+        >
           {isSubmitting ? "Salvando..." : book ? "Atualizar" : "Adicionar"}
         </Button>
         <Button

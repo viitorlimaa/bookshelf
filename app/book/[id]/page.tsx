@@ -5,12 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import {
-  ArrowLeft,
-  Calendar,
-  Pencil,
-  Star,
-} from "lucide-react";
+import { ArrowLeft, Calendar, Pencil, Star } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { DeleteBookButton } from "@/components/delete-book-button";
@@ -23,25 +18,27 @@ export default async function BookDetailsPage({
 }) {
   const { id } = params;
 
-  // 📘 Buscar livro específico pela API
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/books/${id}`, {
+  // Buscar livro
+  const resBook = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`,
+    { cache: "no-store" }
+  );
+  if (resBook.status === 404) notFound();
+  if (!resBook.ok) throw new Error("Erro ao buscar o livro");
+  const book = await resBook.json();
+
+  // Buscar todos os gêneros
+  const resGenres = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/genres`, {
     cache: "no-store",
   });
+  const genres = resGenres.ok ? await resGenres.json() : [];
 
-  if (res.status === 404) notFound();
-  if (!res.ok) throw new Error("Erro ao buscar o livro");
-
-  const book = await res.json();
-
-  // 📚 Buscar gêneros diretamente pela rota da API
-  const genreRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/genres`, {
-    cache: "no-store",
-  });
-
-  const genres = genreRes.ok ? await genreRes.json() : [];
-
-  // 🧮 Calcular progresso
   const readingProgress = getReadingProgress(book);
+
+  const genreNames =
+    book.genreIds
+      ?.map((id: number) => genres.find((g: any) => g.id === id)?.name)
+      .filter(Boolean) || [];
 
   const getStatusLabel = (status?: string) => {
     switch (status) {
@@ -59,11 +56,6 @@ export default async function BookDetailsPage({
         return "Não definido";
     }
   };
-
-  const genreNames =
-    book.genreIds
-      ?.map((id: number) => genres.find((g: any) => g.id === id)?.name)
-      .filter(Boolean) || [];
   return (
     <div className="min-h-screen flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="w-full max-w-5xl space-y-8">

@@ -1,16 +1,25 @@
-import { calculateBookStats } from "@/data/book-stats"
-import { BookOpen, BookMarked, CheckCircle2, FileText } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { RecentBooks } from "@/components/recent-books"
-import { Book } from "@/data/types"
+import { calculateBookStats } from "@/data/book-stats";
+import { BookOpen, BookMarked, CheckCircle2, FileText } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { RecentBooks } from "@/components/recent-books";
+import { Book } from "@/data/types";
 
 export default async function DashboardPage() {
-  const res = await fetch(`http://localhost:3000/api/books`, { cache: "no-store" });
-   if (!res.ok) throw new Error("Erro ao buscar livros");
-   let books: Book[] = await res.json();
-  const stats = calculateBookStats(books)
+  // ✅ Fetch da API do Render
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Erro ao buscar livros");
+  const books: Book[] = await res.json();
+  const stats = calculateBookStats(books);
 
   return (
     <div className="min-h-screen bg-background text-foreground py-10 px-4 sm:px-6 lg:px-10 space-y-10 transition-colors">
@@ -26,7 +35,9 @@ export default async function DashboardPage() {
       <div className="max-w-7xl mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-2xl shadow-sm border transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Livros</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total de Livros
+            </CardTitle>
             <BookOpen className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -37,7 +48,9 @@ export default async function DashboardPage() {
 
         <Card className="rounded-2xl shadow-sm border transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lendo Atualmente</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Lendo Atualmente
+            </CardTitle>
             <BookMarked className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -48,7 +61,9 @@ export default async function DashboardPage() {
 
         <Card className="rounded-2xl shadow-sm border transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Livros Finalizados</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Livros Finalizados
+            </CardTitle>
             <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -63,7 +78,9 @@ export default async function DashboardPage() {
             <FileText className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.totalPages.toLocaleString("pt-BR")}</div>
+            <div className="text-3xl font-bold">
+              {stats.totalPages.toLocaleString("pt-BR")}
+            </div>
             <p className="text-xs text-muted-foreground">páginas totais</p>
           </CardContent>
         </Card>
@@ -73,7 +90,9 @@ export default async function DashboardPage() {
       <div className="max-w-7xl mx-auto grid gap-6 md:grid-cols-2">
         <Card className="rounded-2xl shadow-sm border transition-colors">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Navegação Rápida</CardTitle>
+            <CardTitle className="text-lg font-semibold">
+              Navegação Rápida
+            </CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
               Acesse rapidamente as principais funcionalidades
             </CardDescription>
@@ -105,5 +124,5 @@ export default async function DashboardPage() {
         <RecentBooks books={books} />
       </div>
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 // app/api/genres/route.ts
 import { NextResponse } from "next/server";
 
-const API_BASE = "https://db-bookshelf.onrender.com";
+const API_BASE = process.env.DATABASE_URL; // pega do .env
 
 export async function GET() {
   try {
