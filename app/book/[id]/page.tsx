@@ -1,5 +1,6 @@
-import { notFound } from "next/navigation";
+"use server";
 
+import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,8 +8,6 @@ import { Progress } from "@/components/ui/progress";
 import {
   ArrowLeft,
   Calendar,
-  FileText,
-  Hash,
   Pencil,
   Star,
 } from "lucide-react";
@@ -16,7 +15,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { DeleteBookButton } from "@/components/delete-book-button";
 import { getReadingProgress } from "@/data/book-stats";
-import { getGenresServer } from "@/data/get-genres";
 
 export default async function BookDetailsPage({
   params,
@@ -25,14 +23,24 @@ export default async function BookDetailsPage({
 }) {
   const { id } = params;
 
-  // fetch para a API interna
-  const res = await fetch(`http://localhost:3000/api/books/${id}`, { cache: "no-store" });
+  // 📘 Buscar livro específico pela API
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/books/${id}`, {
+    cache: "no-store",
+  });
+
   if (res.status === 404) notFound();
   if (!res.ok) throw new Error("Erro ao buscar o livro");
 
   const book = await res.json();
 
-  const genres = await getGenresServer(); // fetch server-side
+  // 📚 Buscar gêneros diretamente pela rota da API
+  const genreRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/genres`, {
+    cache: "no-store",
+  });
+
+  const genres = genreRes.ok ? await genreRes.json() : [];
+
+  // 🧮 Calcular progresso
   const readingProgress = getReadingProgress(book);
 
   const getStatusLabel = (status?: string) => {
@@ -53,8 +61,9 @@ export default async function BookDetailsPage({
   };
 
   const genreNames =
-    book.genreIds?.map((id: number) => genres.find((g) => g.id === id)?.name).filter(Boolean) || [];
-
+    book.genreIds
+      ?.map((id: number) => genres.find((g: any) => g.id === id)?.name)
+      .filter(Boolean) || [];
   return (
     <div className="min-h-screen flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="w-full max-w-5xl space-y-8">

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
 import { READING_STATUS, type Book, type ReadingStatus } from "@/data/types";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -24,6 +23,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Star } from "lucide-react";
+import { useToast } from "./ui/toast";
 
 interface ApiGenre {
   id: number;

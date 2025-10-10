@@ -37,20 +37,13 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
 
   // 🎯 Filtro por gênero
   if (genreObj) {
-  const genreName = genreObj.name.toLowerCase();
+  const genreName = genreObj.toLowerCase(); // se genreObj for string
 
   books = books.filter((b) => {
-    // garante que o array seja do tipo correto
-    const genreArray: (string | { id: number; name: string })[] = b.genres ?? [];
-    
-    const genreStrings = genreArray.map((g) =>
-      typeof g === "string" ? g : g.name
-    );
-
-    return genreStrings.some((gName) => gName.toLowerCase() === genreName);
+    const genreArray: string[] = b.genres ?? [];
+    return genreArray.some((g) => g.toLowerCase() === genreName);
   });
 }
-
 
   // 📚 Filtro por status
   if (status) {

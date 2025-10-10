@@ -1,4 +1,3 @@
-import { db } from "@/data/db"
 import { calculateBookStats } from "@/data/book-stats"
 import { BookOpen, BookMarked, CheckCircle2, FileText } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
