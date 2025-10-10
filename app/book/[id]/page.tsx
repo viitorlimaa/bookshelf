@@ -1,4 +1,3 @@
-import { db } from "@/data/db";
 import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -25,11 +24,15 @@ export default async function BookDetailsPage({
   params: { id: number };
 }) {
   const { id } = params;
-  const book = await db.getById(id);
-  if (!book) notFound();
 
-  const genres = await getGenresServer(); // ✅ fetch server-side
+  // fetch para a API interna
+  const res = await fetch(`http://localhost:3000/api/books/${id}`, { cache: "no-store" });
+  if (res.status === 404) notFound();
+  if (!res.ok) throw new Error("Erro ao buscar o livro");
 
+  const book = await res.json();
+
+  const genres = await getGenresServer(); // fetch server-side
   const readingProgress = getReadingProgress(book);
 
   const getStatusLabel = (status?: string) => {
@@ -49,10 +52,8 @@ export default async function BookDetailsPage({
     }
   };
 
- // mapear os ids do livro para os nomes dos gêneros
-const genreNames =
-  book.genreIds?.map((id) => genres.find((g) => g.id === id)?.name).filter(Boolean) || [];
-
+  const genreNames =
+    book.genreIds?.map((id: number) => genres.find((g) => g.id === id)?.name).filter(Boolean) || [];
 
   return (
     <div className="min-h-screen flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8 bg-background">
@@ -123,7 +124,7 @@ const genreNames =
                     <p className="text-sm font-medium text-muted-foreground">
                       Gênero
                     </p>
-                    <Badge variant="secondary">{genreName}</Badge>
+                    <Badge variant="secondary">{genreNames.join(", ")}</Badge>
                   </div>
                   {book.year && (
                     <div className="space-y-1">
@@ -136,11 +137,35 @@ const genreNames =
                       </div>
                     </div>
                   )}
-                  {/* outras infos... */}
+                  {/* outras infos podem ser adicionadas aqui */}
                 </div>
               </CardContent>
             </Card>
-            {/* Progresso e Sinopse podem permanecer igual */}
+
+            {/* Progresso */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Progresso de Leitura</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Progress value={readingProgress} max={100} />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {readingProgress}% completo - {getStatusLabel(book.status)}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Sinopse */}
+            {book.synopsis && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sinopse</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{book.synopsis}</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { db } from "@/data/db";
 import { BookGrid } from "@/components/book-grid";
 import { BookGridSkeleton } from "@/components/book-grid-skeleton";
 import { LibraryFilters } from "@/components/library-filters";
@@ -18,40 +17,40 @@ interface LibraryPageProps {
 export default async function LibraryPage({ searchParams }: LibraryPageProps) {
   const { query, genre: genreParam, status: statusParam } = searchParams || {};
 
-  const genre = parseGenre(genreParam);
+  const genreObj = parseGenre(genreParam); // retorna um objeto Genre ou undefined
   const status = parseReadingStatus(statusParam);
 
-  // 🔹 Carrega todos os livros
-  let books: Book[] = await db.getAll();
+  // 🔹 Carrega todos os livros via API interna
+  const res = await fetch(`http://localhost:3000/api/books`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Erro ao buscar livros");
+  let books: Book[] = await res.json();
 
   // 🔎 Filtro por busca
   if (query) {
+    const q = query.toLowerCase();
     books = books.filter(
       (b) =>
-        b.title.toLowerCase().includes(query.toLowerCase()) ||
-        b.author.toLowerCase().includes(query.toLowerCase())
+        b.title.toLowerCase().includes(q) ||
+        b.author.toLowerCase().includes(q)
     );
   }
 
-  // 🎯 Filtro por gênero (corrigido e tipado)
-  if (genre) {
-    books = books.filter((b) => {
-      const bookGenres = b.genres ?? (b.genre ? [b.genre] : []);
+  // 🎯 Filtro por gênero
+  if (genreObj) {
+  const genreName = genreObj.name.toLowerCase();
 
-      return bookGenres.some((g: string | { id: number; name: string }) => {
-        if (typeof g === "string") {
-          return g.toLowerCase() === genre.toLowerCase();
-        } else if (
-          typeof g === "object" &&
-          "name" in g &&
-          typeof g.name === "string"
-        ) {
-          return g.name.toLowerCase() === genre.toLowerCase();
-        }
-        return false;
-      });
-    });
-  }
+  books = books.filter((b) => {
+    // garante que o array seja do tipo correto
+    const genreArray: (string | { id: number; name: string })[] = b.genres ?? [];
+    
+    const genreStrings = genreArray.map((g) =>
+      typeof g === "string" ? g : g.name
+    );
+
+    return genreStrings.some((gName) => gName.toLowerCase() === genreName);
+  });
+}
+
 
   // 📚 Filtro por status
   if (status) {
@@ -72,9 +71,7 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
         </div>
 
         {/* Filtros */}
-        <Suspense
-          fallback={<div className="text-center">Carregando filtros...</div>}
-        >
+        <Suspense fallback={<div className="text-center">Carregando filtros...</div>}>
           <div className="w-full max-w-5xl mx-auto">
             <LibraryFilters />
           </div>

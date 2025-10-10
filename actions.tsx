@@ -2,77 +2,83 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { db } from "@/data/db";
 import type { Book } from "@/data/types";
 
+// URL base do backend
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://db-bookshelf.onrender.com";
+
+/** CREATE */
 export async function createBook(
   data: Omit<Book, "id" | "createdAt" | "updatedAt">
 ) {
   try {
-    // Forçar valores padrão para campos obrigatórios
-    const payload = {
-      title: data.title,
-      author: data.author,
-      genres: data.genres || [],
-      year: data.year ?? 0,
-      pages: data.pages ?? 0,
-      rating: data.rating ?? 0,
-      synopsis: data.synopsis || "",
-      cover: data.cover || "",
-      currentPage: data.currentPage ?? 0,
-      status: data.status ?? "QUERO_LER",
-      isbn: data.isbn,
-      notes: data.notes,
-    };
+    const res = await fetch(`${API_URL}/books`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
 
-    const newBook = await db.create(payload);
+    if (!res.ok) throw new Error("Erro ao criar livro");
+    const newBook = await res.json();
 
     revalidatePath("/library");
     revalidatePath("/");
+
     return { success: true, book: newBook };
   } catch (error) {
     console.error("Error in createBook action:", error);
     return { success: false, error: "Erro ao criar livro" };
   }
 }
+
+/** UPDATE */
 export async function updateBook(
   id: string,
-  data: Partial<Omit<Book, "id" | "createdAt">>
+  data: Partial<Omit<Book, "id" | "createdAt" | "updatedAt">>
 ) {
   try {
-    const updatedBook = await db.update(id, data);
-    if (!updatedBook) {
-      return { success: false, error: "Livro não encontrado" };
-    }
+    const res = await fetch(`${API_URL}/books/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) throw new Error("Erro ao atualizar livro");
+    const updatedBook = await res.json();
+
     revalidatePath("/library");
     revalidatePath(`/book/${id}`);
     revalidatePath("/");
+
     return { success: true, book: updatedBook };
   } catch (error) {
-    console.error("[v0] Error in updateBook action:", error);
+    console.error("Error in updateBook action:", error);
     return { success: false, error: "Erro ao atualizar livro" };
   }
 }
 
+/** DELETE */
 export async function deleteBook(id: string) {
   try {
-    const deleted = await db.deleteBook(Number(id));
-    if (!deleted) {
-      return { success: false, error: "Livro não encontrado" };
-    }
+    const res = await fetch(`${API_URL}/books/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) throw new Error("Erro ao deletar livro");
+
     revalidatePath("/library");
     revalidatePath("/");
+
     return { success: true };
   } catch (error) {
-    console.error(" Error in deleteBook action:", error);
+    console.error("Error in deleteBook action:", error);
     return { success: false, error: "Erro ao deletar livro" };
   }
 }
 
+/** DELETE + REDIRECT */
 export async function deleteBookAndRedirect(id: string) {
   const result = await deleteBook(id);
-  if (result.success) {
-    redirect("/library");
-  }
+  if (result.success) redirect("/library");
   return result;
 }

@@ -48,10 +48,11 @@ export function capitalize(text: string): string {
 /**
  * Converte string genérica em Genre válido, ou undefined se inválido.
  */
-export function parseGenre(value: string | undefined): Genre | undefined {
+export function parseGenre(value: string | undefined): string | undefined {
   if (!value) return undefined;
-  return GENRES.includes(value as Genre) ? (value as Genre) : undefined;
+  return GENRES.includes(value) ? value : undefined;
 }
+
 
 /**
  * Converte string genérica em ReadingStatus válido, ou undefined se inválido.

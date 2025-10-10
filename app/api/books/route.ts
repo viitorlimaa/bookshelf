@@ -1,45 +1,32 @@
+// app/api/books/route.ts
 import { NextResponse } from "next/server";
-import { db } from "@/data/db";
 
-export async function GET(request: Request) {
+const API_BASE = "https://db-bookshelf.onrender.com";
+
+export async function GET() {
   try {
-    const url = new URL(request.url);
-    const query = url.searchParams.get("q");
-    const genre = url.searchParams.get("genre");
-    const status = url.searchParams.get("status");
-
-    let books = await db.getAll();
-
-    if (query)
-      books = books.filter(
-        (b) =>
-          b.title.toLowerCase().includes(query.toLowerCase()) ||
-          b.author.toLowerCase().includes(query.toLowerCase())
-      );
-
-    if (genre)
-      books = books.filter(
-        (b) => b.genre?.toLowerCase() === genre.toLowerCase()
-      );
-    if (status) books = books.filter((b) => b.status === status);
-
-    return NextResponse.json(books);
+    const res = await fetch(`${API_BASE}/books`, { cache: "no-store" });
+    const data = await res.json();
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching books:", error);
-    return NextResponse.json(
-      { error: "Erro ao buscar livros" },
-      { status: 500 }
-    );
+    console.error("❌ Error fetching books:", error);
+    return NextResponse.json({ error: "Failed to fetch books" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const newBook = await db.createBook(body);
-    return NextResponse.json(newBook, { status: 201 });
+    const res = await fetch(`${API_BASE}/books`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
-    console.error("Error creating book:", error);
-    return NextResponse.json({ error: "Erro ao criar livro" }, { status: 500 });
+    console.error("❌ Error creating book:", error);
+    return NextResponse.json({ error: "Failed to create book" }, { status: 500 });
   }
 }

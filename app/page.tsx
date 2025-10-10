@@ -5,9 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { RecentBooks } from "@/components/recent-books"
+import { Book } from "@/data/types"
 
 export default async function DashboardPage() {
-  const books = await db.getAll()
+  const res = await fetch(`http://localhost:3000/api/books`, { cache: "no-store" });
+   if (!res.ok) throw new Error("Erro ao buscar livros");
+   let books: Book[] = await res.json();
   const stats = calculateBookStats(books)
 
   return (

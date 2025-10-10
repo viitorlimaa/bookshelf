@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { READING_STATUS, type Book, type ReadingStatus } from "@/data/types";
-import { db } from "@/data/db";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/text-area";
@@ -53,6 +52,7 @@ type FormState = {
 export function BookForm({ book }: Props) {
   const router = useRouter();
   const { toast } = useToast();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [genresFromDb, setGenresFromDb] = useState<ApiGenre[]>([]);
   const [formData, setFormData] = useState<FormState>({
@@ -62,7 +62,7 @@ export function BookForm({ book }: Props) {
       book?.genres && book.genres.length > 0
         ? typeof book.genres[0] === "string"
           ? book.genres[0]
-          : (book.genres[0] as any).name
+          : (book.genres[0] as ApiGenre).name
         : "",
     year: book?.year?.toString() || "",
     pages: book?.pages?.toString() || "",
@@ -76,30 +76,16 @@ export function BookForm({ book }: Props) {
   });
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
-  // 🔹 Carrega os gêneros do backend
+  // 🔹 Carrega os gêneros via API
   useEffect(() => {
-    db.getGenres()
-      .then((res) => {
+    fetch("/api/genres")
+      .then((res) => res.json())
+      .then((res: ApiGenre[]) => {
         const filtered = res.filter((g) => g.name && g.name.trim() !== "");
         setGenresFromDb(filtered);
       })
       .catch((err) => console.error("❌ Erro ao carregar gêneros:", err));
   }, []);
-
-  // 🔹 Corrige renderização do gênero ao carregar book + gêneros
-  useEffect(() => {
-    if (!book || genresFromDb.length === 0) return;
-
-    const firstGenre = book.genres?.[0];
-    if (!firstGenre) return;
-
-    const genreName = typeof firstGenre === "string" ? firstGenre : firstGenre.name;
-    const exists = genresFromDb.some((g) => g.name === genreName);
-
-    if (exists && formData.genre !== genreName) {
-      setFormData((prev) => ({ ...prev, genre: genreName }));
-    }
-  }, [book, genresFromDb]); // garante renderização correta
 
   const updateField = (field: keyof FormState, value: string | number) => {
     setFormData((prev) => {
@@ -121,6 +107,7 @@ export function BookForm({ book }: Props) {
       }
       return next;
     });
+
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
@@ -159,11 +146,11 @@ export function BookForm({ book }: Props) {
     if (Object.keys(newErrors).length > 0) return;
 
     setIsSubmitting(true);
+
     try {
       const selectedGenre = genresFromDb.find((g) => g.name === formData.genre);
       const genreIds = selectedGenre ? [selectedGenre.id] : [];
 
-      // 🔹 Payload final
       const payload = {
         title: formData.title.trim(),
         author: formData.author.trim(),
@@ -179,13 +166,16 @@ export function BookForm({ book }: Props) {
         genreIds,
       };
 
-      console.log("📤 Payload enviado:", payload);
+      const url = book ? `/api/books/${book.id}` : "/api/books";
+      const method = book ? "PATCH" : "POST";
 
-      if (book) {
-        await db.updateBook(book.id, payload);
-      } else {
-        await db.createBook(payload);
-      }
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Erro ao salvar livro");
 
       toast({
         title: book ? "Livro atualizado" : "Livro adicionado",
@@ -194,7 +184,6 @@ export function BookForm({ book }: Props) {
       });
 
       router.push("/library");
-      router.refresh();
     } catch (err) {
       console.error("❌ Erro ao salvar livro:", err);
       toast({
@@ -252,7 +241,7 @@ export function BookForm({ book }: Props) {
             </div>
           </div>
 
-          {/* Gênero e Avaliação */}
+          {/* Gênero */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="genre">Gênero</Label>
@@ -271,14 +260,13 @@ export function BookForm({ book }: Props) {
                       </SelectItem>
                     ))
                   ) : (
-                    <div className="p-2 text-sm text-gray-500">
-                      Carregando gêneros...
-                    </div>
+                    <div className="p-2 text-sm text-gray-500">Carregando gêneros...</div>
                   )}
                 </SelectContent>
               </Select>
             </div>
 
+            {/* Avaliação */}
             <div>
               <Label>Avaliação</Label>
               <div className="flex gap-1 mt-1">

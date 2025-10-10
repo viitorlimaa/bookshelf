@@ -1,31 +1,23 @@
+// app/api/genres/[id]/route.ts
 import { NextResponse } from "next/server";
-import { db } from "@/data/db";
+
+const API_BASE = "https://db-bookshelf.onrender.com";
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { genre: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { genre } = params;
+    const res = await fetch(`${API_BASE}/genres/${params.id}`, {
+      method: "DELETE",
+    });
 
-    // Buscar gênero pelo nome (case-insensitive)
-    const genreRecord = (await db.getGenres()).find(
-      (g) => g.name.toLowerCase() === genre.toLowerCase()
-    );
-    console.log(genre);
-    if (!genreRecord)
-      return NextResponse.json(
-        { error: "Gênero não encontrado" },
-        { status: 404 }
-      );
+    if (res.status === 204) return NextResponse.json({ ok: true });
+    const text = await res.text();
 
-    await db.removeGenre(genreRecord.id);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ message: text }, { status: res.status });
   } catch (error) {
-    console.error("Erro ao deletar gênero:", error);
-    return NextResponse.json(
-      { error: "Erro ao deletar gênero" },
-      { status: 500 }
-    );
+    console.error("❌ Error deleting genre:", error);
+    return NextResponse.json({ error: "Failed to delete genre" }, { status: 500 });
   }
 }

@@ -1,83 +1,60 @@
+// app/api/books/[id]/route.ts
 import { NextResponse } from "next/server";
-import { db } from "@/data/db";
+
+const API_BASE = "https://db-bookshelf.onrender.com";
 
 export async function GET(
-  _request: Request,
+  _req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = Number(params.id);
-    if (isNaN(id))
-      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+    const res = await fetch(`${API_BASE}/books/${params.id}`, { cache: "no-store" });
+    if (res.status === 404)
+      return NextResponse.json({ error: "Book not found" }, { status: 404 });
 
-    const book = await db.getBook(Number(id));
-
-    if (!book)
-      return NextResponse.json(
-        { error: "Livro não encontrado" },
-        { status: 404 }
-      );
-
-    return NextResponse.json(book);
+    const data = await res.json();
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching book:", error);
-    return NextResponse.json(
-      { error: "Erro ao buscar livro" },
-      { status: 500 }
-    );
+    console.error("❌ Error fetching book:", error);
+    return NextResponse.json({ error: "Failed to fetch book" }, { status: 500 });
   }
 }
 
-export async function PUT(
+export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = Number(params.id);
-    if (isNaN(id))
-      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
-
     const body = await request.json();
-    const updatedBook = await db.update(id, body);
+    const res = await fetch(`${API_BASE}/books/${params.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
-    if (!updatedBook)
-      return NextResponse.json(
-        { error: "Livro não encontrado" },
-        { status: 404 }
-      );
-
-    return NextResponse.json(updatedBook);
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
-    console.error("Error updating book:", error);
-    return NextResponse.json(
-      { error: "Erro ao atualizar livro" },
-      { status: 500 }
-    );
+    console.error("❌ Error updating book:", error);
+    return NextResponse.json({ error: "Failed to update book" }, { status: 500 });
   }
 }
 
 export async function DELETE(
-  _request: Request,
+  _req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = Number(params.id);
-    if (isNaN(id))
-      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+    const res = await fetch(`${API_BASE}/books/${params.id}`, {
+      method: "DELETE",
+    });
 
-    const deleted = await db.deleteBook(id);
-    if (!deleted)
-      return NextResponse.json(
-        { error: "Livro não encontrado" },
-        { status: 404 }
-      );
+    if (res.status === 204) return NextResponse.json({ ok: true });
+    const text = await res.text();
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ message: text }, { status: res.status });
   } catch (error) {
-    console.error("Error deleting book:", error);
-    return NextResponse.json(
-      { error: "Erro ao deletar livro" },
-      { status: 500 }
-    );
+    console.error("❌ Error deleting book:", error);
+    return NextResponse.json({ error: "Failed to delete book" }, { status: 500 });
   }
 }
