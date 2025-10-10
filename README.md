@@ -112,8 +112,8 @@
 ### Análise e Monitoramento
 
 - **[@vercel/analytics](https://vercel.com/analytics)** - Analytics integrado da Vercel
-
 ---
+
 ### 📂 Descrição das Pastas Principais
 
 #### `/app` - App Router
@@ -129,7 +129,7 @@ Utiliza o novo App Router do Next.js 14 com suporte a Server Components, layouts
 
 Hooks reutilizáveis para lógica compartilhada e gerenciamento de estado.
 
-#### `/lib` - Biblioteca
+#### `/library` - Biblioteca
 
 Utilitários, helpers, configurações de API e schemas de validação.
 
