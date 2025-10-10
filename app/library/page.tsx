@@ -20,8 +20,10 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
   const genreObj = parseGenre(genreParam);
   const status = parseReadingStatus(statusParam);
 
-  // 🔹 Fetch da API do Render
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books`, { cache: "no-store" });
+  // 🔹 Fetch via API interna do Next
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books`, {
+    cache: "no-store",
+  });
   if (!res.ok) throw new Error("Erro ao buscar livros");
   let books: Book[] = await res.json();
 
@@ -30,11 +32,11 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
     const q = query.toLowerCase();
     books = books.filter(
       (b) =>
-        b.title.toLowerCase().includes(q) ||
-        b.author.toLowerCase().includes(q)
+        b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q)
     );
   }
-//  Filtro por gênero
+
+  //  Filtro por gênero
   if (genreObj) {
     const genreName = genreObj.toLowerCase(); // se genreObj for string
 
@@ -56,7 +58,9 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
           </p>
         </div>
 
-        <Suspense fallback={<div className="text-center">Carregando filtros...</div>}>
+        <Suspense
+          fallback={<div className="text-center">Carregando filtros...</div>}
+        >
           <div className="w-full max-w-5xl mx-auto">
             <LibraryFilters />
           </div>

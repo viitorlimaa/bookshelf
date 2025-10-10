@@ -13,7 +13,7 @@ import { RecentBooks } from "@/components/recent-books";
 import { Book } from "@/data/types";
 
 export default async function DashboardPage() {
-  // ✅ Fetch da API do Render
+  //  Fetch da API interna
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books`, {
     cache: "no-store",
   });

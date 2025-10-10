@@ -5,16 +5,20 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 interface EditBookPageProps {
-   params: { id: number };
+  params: { id: number };
 }
 
 export default async function EditBookPage({ params }: EditBookPageProps) {
- const { id } = params;
+  const { id } = params;
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`, { cache: "no-store" });
-  if (res.status === 404) notFound();
-  if (!res.ok) throw new Error("Erro ao buscar o livro");
-  const book = await res.json();;
+  // Buscar livro via API interna
+  const resBook = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`,
+    { cache: "no-store" }
+  );
+  if (resBook.status === 404) notFound();
+  if (!resBook.ok) throw new Error("Erro ao buscar o livro");
+  const book = await resBook.json();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start py-10 px-4 sm:px-6 lg:px-8 bg-background">

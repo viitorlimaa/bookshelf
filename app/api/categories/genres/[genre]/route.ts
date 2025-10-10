@@ -1,23 +1,14 @@
-// app/api/genres/[id]/route.ts
 import { NextResponse } from "next/server";
 
-const API_BASE = "https://db-bookshelf.onrender.com";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
-    const res = await fetch(`${API_BASE}/genres/${params.id}`, {
-      method: "DELETE",
-    });
-
-    if (res.status === 204) return NextResponse.json({ ok: true });
-    const text = await res.text();
-
-    return NextResponse.json({ message: text }, { status: res.status });
+    const res = await fetch(`${API_BASE}/genres/${params.id}`, { cache: "no-store" });
+    const data = await res.json();
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("❌ Error deleting genre:", error);
-    return NextResponse.json({ error: "Failed to delete genre" }, { status: 500 });
+    console.error("❌ Error fetching genre:", error);
+    return NextResponse.json({ error: "Failed to fetch genre" }, { status: 500 });
   }
 }

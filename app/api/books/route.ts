@@ -1,7 +1,6 @@
-// app/api/books/route.ts
 import { NextResponse } from "next/server";
 
-const API_BASE = "https://db-bookshelf.onrender.com";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!; // garante que existe
 
 export async function GET() {
   try {
@@ -22,7 +21,6 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   } catch (error) {

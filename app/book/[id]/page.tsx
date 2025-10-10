@@ -18,7 +18,7 @@ export default async function BookDetailsPage({
 }) {
   const { id } = params;
 
-  // Buscar livro
+  // Buscar livro via API interna
   const resBook = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`,
     { cache: "no-store" }
@@ -27,7 +27,7 @@ export default async function BookDetailsPage({
   if (!resBook.ok) throw new Error("Erro ao buscar o livro");
   const book = await resBook.json();
 
-  // Buscar todos os gêneros
+  // Buscar gêneros via API interna
   const resGenres = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/genres`, {
     cache: "no-store",
   });
