@@ -1,4 +1,3 @@
-// app/library/page.tsx
 import { Suspense } from "react";
 import { BookGrid } from "@/components/book-grid";
 import { BookGridSkeleton } from "@/components/book-grid-skeleton";
@@ -27,47 +26,44 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
   });
   if (!res.ok) throw new Error("Erro ao buscar livros");
 
-  let books: Book[] = await res.json();
+  const booksFromApi = await res.json();
+
+  // 🔹 Normaliza os livros para compatibilidade com BookCard e filtros
+  const normalizedBooks: Book[] = booksFromApi.map((b: any) => ({
+    ...b,
+    genres: Array.isArray(b.genres)
+      ? b.genres.map((g: { id: number; name: string }) => g.name ?? "")
+      : [],
+    cover: b.cover || "/placeholder.svg",
+    rating: b.rating ?? 0,
+    status: b.status ?? undefined,
+    year: typeof b.year === "number" ? b.year : undefined,
+  }));
 
   // 🔎 Filtro por busca (título ou autor)
+  let filteredBooks = normalizedBooks;
   if (query) {
     const q = query.trim().toLowerCase();
-    books = books.filter(
+    filteredBooks = filteredBooks.filter(
       (b) =>
         b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q)
     );
   }
 
-  //  Filtro por gênero
+  // 🔹 Filtro por gênero
   if (genreObj) {
     const genreName = genreObj.trim().toLowerCase();
-
-    books = books.filter((b) => {
-      const genres = Array.isArray(b.genres)
-        ? b.genres
-        : b.genres
-        ? [b.genres]
-        : [];
-
-      return genres.some((g: any) => {
-        const name = typeof g === "object" ? g?.name : g;
-        return (
-          typeof name === "string" && name.trim().toLowerCase() === genreName
-        );
-      });
-    });
+    filteredBooks = filteredBooks.filter((b) =>
+      b.genres?.some((g) => g.toLowerCase() === genreName)
+    );
   }
 
-  // 📘 Filtro por status
+  // 🔹 Filtro por status
   if (statusObj) {
     const statusValue = statusObj.trim().toLowerCase();
-
-    books = books.filter((b) => {
-      const bookStatus = String(b.status || "")
-        .trim()
-        .toLowerCase();
-      return bookStatus === statusValue;
-    });
+    filteredBooks = filteredBooks.filter(
+      (b) => b.status?.toLowerCase() === statusValue
+    );
   }
 
   // 🧱 Renderização
@@ -87,13 +83,13 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
           fallback={<div className="text-center">Carregando filtros...</div>}
         >
           <div className="w-full max-w-5xl mx-auto">
-            <LibraryFilters /> {/* agora com debounce no input */}
+            <LibraryFilters />
           </div>
         </Suspense>
 
         <Suspense fallback={<BookGridSkeleton />}>
           <div className="w-full max-w-6xl mx-auto">
-            <BookGrid books={books} />
+            <BookGrid books={filteredBooks} />
           </div>
         </Suspense>
       </div>

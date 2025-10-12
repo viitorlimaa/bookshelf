@@ -1,26 +1,26 @@
-import type { Book } from "@/data/types"
-import { Eye, Pencil, Star } from "lucide-react"
-import { Badge } from "./ui/badge"
-import Link from "next/link"
-import Image from "next/image"
-import { DeleteBookButton } from "@/components/delete-book-button"
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/card"
-import { Button } from "./ui/button"
+import type { Book } from "@/data/types";
+import { Eye, Pencil, Star } from "lucide-react";
+import { Badge } from "./ui/badge";
+import Link from "next/link";
+import Image from "next/image";
+import { DeleteBookButton } from "@/components/delete-book-button";
+import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
+import { Button } from "./ui/button";
 
 interface BookCardProps {
-  book: Book
+  book: Book;
 }
 
 export function BookCard({ book }: BookCardProps) {
-  const rating = book.rating ?? 0
+  // Normaliza genres para sempre ser um array de strings
+  const normalizedGenres: string[] = Array.isArray(book.genres)
+    ? book.genres.map((g) => (typeof g === "string" ? g : (g as any).name))
+    : [];
 
-  // ✅ Corrigido: obtém o nome do gênero corretamente
-  const genreName =
-    Array.isArray(book.genres) && book.genres.length > 0
-      ? typeof book.genres[0] === "string"
-        ? book.genres[0]
-        : (book.genres[0] as any).name
-      : ""
+  const genreName = normalizedGenres[0] || "";
+  const rating = book.rating ?? 0;
+  const cover = book.cover || "/placeholder.svg";
+  const status = book.status || "QUERO_LER";
 
   return (
     <Card className="group flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 hover:border-border">
@@ -28,7 +28,7 @@ export function BookCard({ book }: BookCardProps) {
       <CardHeader className="p-0">
         <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted">
           <Image
-            src={book.cover || "/placeholder.svg"}
+            src={cover}
             alt={`Capa do livro ${book.title}`}
             fill
             className="object-cover"
@@ -65,9 +65,9 @@ export function BookCard({ book }: BookCardProps) {
         </div>
 
         {/* Status de leitura */}
-        {book.status && (
+        {status && (
           <div className="inline-flex items-center text-xs font-semibold text-primary bg-primary/10 rounded-lg px-3 py-1.5 border border-primary/20">
-            {book.status
+            {status
               .replace("_", " ")
               .toLowerCase()
               .replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -122,5 +122,5 @@ export function BookCard({ book }: BookCardProps) {
         <DeleteBookButton bookId={book.id} bookTitle={book.title} />
       </CardFooter>
     </Card>
-  )
+  );
 }

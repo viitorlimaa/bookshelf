@@ -10,6 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { DeleteBookButton } from "@/components/delete-book-button";
 import { getReadingProgress } from "@/data/book-stats";
+import type { Book } from "@/data/types";
 
 export default async function BookDetailsPage({
   params,
@@ -18,24 +19,30 @@ export default async function BookDetailsPage({
 }) {
   const { id } = params;
 
-  // Buscar livro via API externa
-  const resBook = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`, { cache: "no-store" });
+  // Buscar livro via API
+  const resBook = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`,
+    {
+      cache: "no-store",
+    }
+  );
   if (resBook.status === 404) notFound();
   if (!resBook.ok) throw new Error("Erro ao buscar o livro");
-  const book = await resBook.json();
 
-  // Buscar gêneros via API interna
-  const resGenres = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/genres/${id}`, {
-    cache: "no-store",
-  });
-  const genres = resGenres.ok ? await resGenres.json() : [];
+  const bookFromApi = await resBook.json();
 
-  const readingProgress = getReadingProgress(book);
+  // Normalizar para tipagem correta
+  const book: Book = {
+    ...bookFromApi,
+    genres: Array.isArray(bookFromApi.genres)
+      ? bookFromApi.genres.map((g: { id: number; name: string }) => g)
+      : [],
+  };
 
   const genreNames =
-    book.genreIds
-      ?.map((id: number) => genres.find((g: any) => g.id === id)?.name)
-      .filter(Boolean) || [];
+    book.genres?.map((g: any) => (typeof g === "string" ? g : g.name)) || [];
+
+  const readingProgress = getReadingProgress(book);
 
   const getStatusLabel = (status?: string) => {
     switch (status) {
@@ -53,19 +60,18 @@ export default async function BookDetailsPage({
         return "Não definido";
     }
   };
+
   return (
     <div className="min-h-screen flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="w-full max-w-5xl space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 gap-2">
-          <div className="flex-shrink-0">
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/library">
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only">Voltar</span>
-              </Link>
-            </Button>
-          </div>
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/library">
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">Voltar</span>
+            </Link>
+          </Button>
 
           <div className="flex-1 text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-balance">
@@ -79,8 +85,7 @@ export default async function BookDetailsPage({
           <div className="flex justify-center sm:justify-end gap-2 mt-2 sm:mt-0">
             <Button asChild variant="outline">
               <Link href={`/edit/${book.id}`}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Editar
+                <Pencil className="mr-2 h-4 w-4" /> Editar
               </Link>
             </Button>
             <DeleteBookButton bookId={book.id} bookTitle={book.title} />
@@ -118,12 +123,14 @@ export default async function BookDetailsPage({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Gênero
-                    </p>
-                    <Badge variant="secondary">{genreNames.join(", ")}</Badge>
-                  </div>
+                  {genreNames.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Gênero
+                      </p>
+                      <Badge variant="secondary">{genreNames.join(", ")}</Badge>
+                    </div>
+                  )}
                   {book.year && (
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-muted-foreground">
@@ -135,12 +142,46 @@ export default async function BookDetailsPage({
                       </div>
                     </div>
                   )}
-                  {/* outras infos podem ser adicionadas aqui */}
+                  {book.pages && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Páginas
+                      </p>
+                      <span>{book.pages}</span>
+                    </div>
+                  )}
+                  {book.isbn && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        ISBN
+                      </p>
+                      <span>{book.isbn}</span>
+                    </div>
+                  )}
+                  {book.rating !== undefined && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Avaliação
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        <span>{book.rating.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  )}
+                  {book.status && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Status
+                      </p>
+                      <Badge>{getStatusLabel(book.status)}</Badge>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Progresso */}
+            {/* Progresso de Leitura */}
             <Card>
               <CardHeader>
                 <CardTitle>Progresso de Leitura</CardTitle>
@@ -161,6 +202,18 @@ export default async function BookDetailsPage({
                 </CardHeader>
                 <CardContent>
                   <p>{book.synopsis}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Notas */}
+            {book.notes && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{book.notes}</p>
                 </CardContent>
               </Card>
             )}
