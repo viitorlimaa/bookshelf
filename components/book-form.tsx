@@ -79,7 +79,7 @@ export function BookForm({ book }: Props) {
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/genres`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/genres`); // chama a rota interna
         if (!res.ok) throw new Error("Erro ao buscar gêneros");
         const data: ApiGenre[] = await res.json();
         const filtered = data.filter((g) => g.name && g.name.trim() !== "");
@@ -170,6 +170,7 @@ export function BookForm({ book }: Props) {
         notes: formData.notes?.trim() || undefined,
         genreIds,
       };
+      console.log("corpo do objeto:", payload);
 
       const url = book ? `/api/books/${book.id}` : "/api/books";
       const method = book ? "PATCH" : "POST";

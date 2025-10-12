@@ -1,46 +1,61 @@
-"use client"
+"use client";
 
-import { Input } from "./ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { GENRES, READING_STATUS } from "@/data/types"
-import { Search, X } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Button } from "./ui/button"
+import { Input } from "./ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { GENRES, READING_STATUS } from "@/data/types";
+import { Search, X } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "./ui/button";
+import { useEffect, useState } from "react";
 
 export function LibraryFilters() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const query = searchParams.get("query") || ""
-  const genre = searchParams.get("genre") || "all"
-  const status = searchParams.get("status") || "all"
+  const query = searchParams.get("query") || "";
+  const genre = searchParams.get("genre") || "all";
+  const status = searchParams.get("status") || "all";
+  const [search, setSearch] = useState(searchParams.get("query") || "");
 
   const updateFilters = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams.toString());
     if (value) {
-      params.set(key, value)
+      params.set(key, value);
     } else {
-      params.delete(key)
+      params.delete(key);
     }
     // Clear other filters when setting a new one
     if (key === "query" && value) {
-      params.delete("genre")
-      params.delete("status")
+      params.delete("genre");
+      params.delete("status");
     } else if (key === "genre" && value) {
-      params.delete("query")
-      params.delete("status")
+      params.delete("query");
+      params.delete("status");
     } else if (key === "status" && value) {
-      params.delete("query")
-      params.delete("genre")
+      params.delete("query");
+      params.delete("genre");
     }
-    router.push(`/library?${params.toString()}`)
-  }
+    router.push(`/library?${params.toString()}`);
+  };
 
   const clearFilters = () => {
-    router.push("/library")
-  }
+    router.push("/library");
+  };
 
-  const hasActiveFilters = query || genre !== "all" || status !== "all"
+  const hasActiveFilters = query || genre !== "all" || status !== "all";
+  // e logo abaixo adiciona:
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      updateFilters("query", search);
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [search]);
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center">
@@ -48,13 +63,16 @@ export function LibraryFilters() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Buscar por título ou autor..."
-          value={query}
-          onChange={(e) => updateFilters("query", e.target.value)}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
         />
       </div>
 
-      <Select value={genre} onValueChange={(value) => updateFilters("genre", value)}>
+      <Select
+        value={genre}
+        onValueChange={(value) => updateFilters("genre", value)}
+      >
         <SelectTrigger className="w-full md:w-[200px]">
           <SelectValue placeholder="Filtrar por gênero" />
         </SelectTrigger>
@@ -68,7 +86,10 @@ export function LibraryFilters() {
         </SelectContent>
       </Select>
 
-      <Select value={status} onValueChange={(value) => updateFilters("status", value)}>
+      <Select
+        value={status}
+        onValueChange={(value) => updateFilters("status", value)}
+      >
         <SelectTrigger className="w-full md:w-[200px]">
           <SelectValue placeholder="Filtrar por status" />
         </SelectTrigger>
@@ -83,11 +104,16 @@ export function LibraryFilters() {
       </Select>
 
       {hasActiveFilters && (
-        <Button variant="ghost" size="icon" onClick={clearFilters} className="shrink-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={clearFilters}
+          className="shrink-0"
+        >
           <X className="h-4 w-4" />
           <span className="sr-only">Limpar filtros</span>
         </Button>
       )}
     </div>
-  )
+  );
 }

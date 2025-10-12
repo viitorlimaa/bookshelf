@@ -1,3 +1,4 @@
+// app/library/page.tsx
 import { Suspense } from "react";
 import { BookGrid } from "@/components/book-grid";
 import { BookGridSkeleton } from "@/components/book-grid-skeleton";
@@ -18,18 +19,19 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
   const { query, genre: genreParam, status: statusParam } = searchParams || {};
 
   const genreObj = parseGenre(genreParam);
-  const status = parseReadingStatus(statusParam);
+  const statusObj = parseReadingStatus(statusParam);
 
-  // 🔹 Fetch via API interna do Next
+  // 🔹 Busca os livros
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books`, {
     cache: "no-store",
   });
   if (!res.ok) throw new Error("Erro ao buscar livros");
+
   let books: Book[] = await res.json();
 
-  // 🔎 Filtro por busca
+  // 🔎 Filtro por busca (título ou autor)
   if (query) {
-    const q = query.toLowerCase();
+    const q = query.trim().toLowerCase();
     books = books.filter(
       (b) =>
         b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q)
@@ -38,14 +40,37 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
 
   //  Filtro por gênero
   if (genreObj) {
-    const genreName = genreObj.toLowerCase(); // se genreObj for string
+    const genreName = genreObj.trim().toLowerCase();
 
     books = books.filter((b) => {
-      const genreArray: string[] = b.genres ?? [];
-      return genreArray.some((g) => g.toLowerCase() === genreName);
+      const genres = Array.isArray(b.genres)
+        ? b.genres
+        : b.genres
+        ? [b.genres]
+        : [];
+
+      return genres.some((g: any) => {
+        const name = typeof g === "object" ? g?.name : g;
+        return (
+          typeof name === "string" && name.trim().toLowerCase() === genreName
+        );
+      });
     });
   }
 
+  // 📘 Filtro por status
+  if (statusObj) {
+    const statusValue = statusObj.trim().toLowerCase();
+
+    books = books.filter((b) => {
+      const bookStatus = String(b.status || "")
+        .trim()
+        .toLowerCase();
+      return bookStatus === statusValue;
+    });
+  }
+
+  // 🧱 Renderização
   return (
     <LibraryToaster>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -62,7 +87,7 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
           fallback={<div className="text-center">Carregando filtros...</div>}
         >
           <div className="w-full max-w-5xl mx-auto">
-            <LibraryFilters />
+            <LibraryFilters /> {/* agora com debounce no input */}
           </div>
         </Suspense>
 

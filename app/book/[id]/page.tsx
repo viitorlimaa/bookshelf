@@ -18,17 +18,14 @@ export default async function BookDetailsPage({
 }) {
   const { id } = params;
 
-  // Buscar livro via API interna
-  const resBook = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`,
-    { cache: "no-store" }
-  );
+  // Buscar livro via API externa
+  const resBook = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`, { cache: "no-store" });
   if (resBook.status === 404) notFound();
   if (!resBook.ok) throw new Error("Erro ao buscar o livro");
   const book = await resBook.json();
 
   // Buscar gêneros via API interna
-  const resGenres = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/genres`, {
+  const resGenres = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/genres/${id}`, {
     cache: "no-store",
   });
   const genres = resGenres.ok ? await resGenres.json() : [];

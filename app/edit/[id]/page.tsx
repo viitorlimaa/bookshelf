@@ -12,10 +12,8 @@ export default async function EditBookPage({ params }: EditBookPageProps) {
   const { id } = params;
 
   // Buscar livro via API interna
-  const resBook = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`,
-    { cache: "no-store" }
-  );
+  const resBook = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`, { cache: "no-store" });
+
   if (resBook.status === 404) notFound();
   if (!resBook.ok) throw new Error("Erro ao buscar o livro");
   const book = await resBook.json();
