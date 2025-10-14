@@ -18,10 +18,11 @@ export function LibraryBooks({ searchParams }: LibraryBooksProps) {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [fetched, setFetched] = useState(false); // indica se o fetch terminou
+  const [fetched, setFetched] = useState(false);
 
   const { query, genre, status } = searchParams || {};
 
+  // 🔹 Busca inicial
   useEffect(() => {
     const controller = new AbortController();
 
@@ -47,7 +48,6 @@ export function LibraryBooks({ searchParams }: LibraryBooksProps) {
       } catch (err: any) {
         if (err.name !== "AbortError") setError(err.message);
       } finally {
-        // Garante tempo suficiente para atualização do estado `books`
         setTimeout(() => {
           setLoading(false);
           setFetched(true);
@@ -60,7 +60,12 @@ export function LibraryBooks({ searchParams }: LibraryBooksProps) {
     return () => controller.abort();
   }, []);
 
-  // 🔹 Aplica filtros apenas depois de carregar completamente
+  // 🔹 Função para deletar livro
+  const handleDelete = (bookId: string) => {
+    setBooks((prev) => prev.filter((b) => b.id !== bookId));
+  };
+
+  // 🔹 Filtros
   const filteredBooks =
     fetched && !error
       ? books.filter((b) => {
@@ -90,22 +95,22 @@ export function LibraryBooks({ searchParams }: LibraryBooksProps) {
 
   return (
     <LibraryToaster>
-      {/* Estado de carregamento */}
       {loading && <BookGridSkeleton />}
 
-      {/* Estado de erro */}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
-      {/* Nenhum resultado encontrado — só mostra se já buscou */}
-      {!loading && fetched && !error && books.length > 0 && filteredBooks.length === 0 && (
-        <p className="text-center text-muted-foreground py-12">
-          Nenhum livro encontrado
-        </p>
-      )}
+      {!loading &&
+        fetched &&
+        !error &&
+        books.length > 0 &&
+        filteredBooks.length === 0 && (
+          <p className="text-center text-muted-foreground py-12">
+            Nenhum livro encontrado
+          </p>
+        )}
 
-      {/* Exibe a grade de livros */}
       {!loading && !error && filteredBooks.length > 0 && (
-        <BookGrid books={filteredBooks} />
+        <BookGrid books={filteredBooks} onDelete={handleDelete} />
       )}
     </LibraryToaster>
   );

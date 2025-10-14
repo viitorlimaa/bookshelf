@@ -21,9 +21,14 @@ import { useToast } from "./ui/toast";
 interface DeleteBookButtonProps {
   bookId: string;
   bookTitle: string;
+  onDelete?: (bookId: string) => void; // opcional
 }
 
-export function DeleteBookButton({ bookId, bookTitle }: DeleteBookButtonProps) {
+export function DeleteBookButton({
+  bookId,
+  bookTitle,
+  onDelete,
+}: DeleteBookButtonProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -35,14 +40,14 @@ export function DeleteBookButton({ bookId, bookTitle }: DeleteBookButtonProps) {
     if (result.success) {
       toast({
         title: "Livro excluído",
-        description: `"${bookTitle}" foi removido da sua biblioteca.`,
+        description: `"${bookTitle}" removido.`,
         variant: "success",
       });
-      router.refresh();
+      onDelete?.(bookId); // 🔹 Atualiza o estado do LibraryBooks
     } else {
       toast({
-        title: "Erro ao excluir",
-        description: result.error || "Não foi possível excluir o livro.",
+        title: "Erro",
+        description: result.error || "Não foi possível excluir.",
         variant: "error",
       });
     }
@@ -62,7 +67,8 @@ export function DeleteBookButton({ bookId, bookTitle }: DeleteBookButtonProps) {
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja excluir <strong>{bookTitle}</strong>? Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir <strong>{bookTitle}</strong>? Esta
+            ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
