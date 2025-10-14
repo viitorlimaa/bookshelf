@@ -1,32 +1,32 @@
 import { NextResponse } from "next/server";
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE!;
 
+// Funções que podem ser chamadas no frontend
+export async function getBooks() {
+  const res = await fetch(`${BASE_URL}/books`);
+  if (!res.ok) throw new Error("Erro ao buscar livros");
+  return res.json();
+}
+
+export async function createBook(data: any) {
+  const res = await fetch(`${BASE_URL}/books`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Erro ao criar livro");
+  return res.json();
+}
+
+// Método HTTP para Next.js
 export async function GET() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE!}/books`, { cache: "no-store" });
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error("❌ Erro ao buscar livros:", err);
-    return NextResponse.json(
-      { error: "Erro ao buscar livros" },
-      { status: 500 }
-    );
-  }
+  const books = await getBooks();
+  return NextResponse.json(books);
 }
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE!}/books`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
-  } catch (err) {
-    console.error("❌ Erro ao criar livro:", err);
-    return NextResponse.json({ error: "Erro ao criar livro" }, { status: 500 });
-  }
+  const body = await req.json();
+  const book = await createBook(body);
+  return NextResponse.json(book);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { READING_STATUS, type Book, type ReadingStatus } from "@/data/types";
 import { Label } from "@/components/ui/label";
@@ -32,6 +32,7 @@ interface ApiGenre {
 
 interface Props {
   book?: Book;
+  genresFromDb: ApiGenre[];
 }
 
 type FormState = {
@@ -49,12 +50,11 @@ type FormState = {
   notes: string;
 };
 
-export function BookForm({ book }: Props) {
+export function BookForm({ book, genresFromDb }: Props) {
   const router = useRouter();
   const { toast } = useToast();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [genresFromDb, setGenresFromDb] = useState<ApiGenre[]>([]);
   const [formData, setFormData] = useState<FormState>({
     title: book?.title || "",
     author: book?.author || "",
@@ -76,27 +76,10 @@ export function BookForm({ book }: Props) {
   });
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
-  useEffect(() => {
-    const fetchGenres = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/genres`); // chama a rota interna
-        if (!res.ok) throw new Error("Erro ao buscar gêneros");
-        const data: ApiGenre[] = await res.json();
-        const filtered = data.filter((g) => g.name && g.name.trim() !== "");
-        setGenresFromDb(filtered);
-      } catch (err) {
-        console.error("❌ Erro ao carregar gêneros:", err);
-      }
-    };
-
-    fetchGenres();
-  }, []);
-
   const updateField = (field: keyof FormState, value: string | number) => {
     setFormData((prev) => {
       const next = { ...prev, [field]: value } as FormState;
 
-      // Atualiza status automaticamente conforme progresso
       if (field === "currentPage" || field === "pages") {
         const total = Number(next.pages || 0);
         const cur = Number(next.currentPage || 0);
@@ -110,6 +93,7 @@ export function BookForm({ book }: Props) {
           next.status = autoStatus;
         }
       }
+
       return next;
     });
 
@@ -144,6 +128,7 @@ export function BookForm({ book }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const newErrors: typeof errors = {};
     if (!formData.title?.trim()) newErrors.title = "Título é obrigatório";
     if (!formData.author?.trim()) newErrors.author = "Autor é obrigatório";
@@ -154,23 +139,31 @@ export function BookForm({ book }: Props) {
 
     try {
       const selectedGenre = genresFromDb.find((g) => g.name === formData.genre);
-      const genreIds = selectedGenre ? [selectedGenre.id] : [];
+
+      if (!selectedGenre) {
+        toast({
+          title: "Erro",
+          description: "Selecione um gênero válido.",
+          variant: "error",
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
       const payload = {
         title: formData.title.trim(),
         author: formData.author.trim(),
-        year: parseInt(formData.year || "0", 10),
-        pages: parseInt(formData.pages || "0", 10),
-        currentPage: parseInt(formData.currentPage || "0", 10),
+        year: parseInt(formData.year || "0", 10) || 0,
+        pages: parseInt(formData.pages || "0", 10) || 0,
+        currentPage: parseInt(formData.currentPage || "0", 10) || 0,
         status: formData.status as ReadingStatus,
         isbn: formData.isbn?.trim() || undefined,
         cover: formData.cover?.trim() || "https://via.placeholder.com/150",
         rating: Number(formData.rating) || 0,
         synopsis: formData.synopsis?.trim() || "Sem sinopse",
         notes: formData.notes?.trim() || undefined,
-        genreIds,
+        genreIds: [selectedGenre.id],
       };
-      console.log("corpo do objeto:", payload);
 
       const url = book ? `/api/books/${book.id}` : "/api/books";
       const method = book ? "PATCH" : "POST";
@@ -181,7 +174,10 @@ export function BookForm({ book }: Props) {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Erro ao salvar livro");
+      const data = await res.json();
+      console.log("Resposta do backend:", data);
+
+      if (!res.ok) throw new Error(data.message || "Erro ao salvar livro");
 
       toast({
         title: book ? "Livro atualizado" : "Livro adicionado",
@@ -190,11 +186,11 @@ export function BookForm({ book }: Props) {
       });
 
       router.push("/library");
-    } catch (err) {
+    } catch (err: any) {
       console.error("❌ Erro ao salvar livro:", err);
       toast({
         title: "Erro",
-        description: "Erro ao salvar o livro.",
+        description: err.message || "Erro ao salvar o livro.",
         variant: "error",
       });
     } finally {

@@ -1,4 +1,4 @@
-import { calculateBookStats } from "@/data/book-stats";
+// app/dashboard/page.tsx
 import { BookOpen, BookMarked, CheckCircle2, FileText } from "lucide-react";
 import {
   Card,
@@ -9,19 +9,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { RecentBooks } from "@/components/recent-books";
-import { Book } from "@/data/types";
+
+import { RecentBooksClient } from "@/components/recent-books-client";
+import { DashboardStatsClient } from "@/components/dashboard-stats-client";
 
 export default async function DashboardPage() {
-  // Dashboard, Library, BookForm, EditBookPage, BookDetailsPage
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) throw new Error("Erro ao buscar livros");
-  const books: Book[] = await res.json();
-  const stats = calculateBookStats(books);
-
   return (
     <div className="min-h-screen bg-background text-foreground py-10 px-4 sm:px-6 lg:px-10 space-y-10 transition-colors">
       {/* Header */}
@@ -32,60 +24,8 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="max-w-7xl mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-2xl shadow-sm border transition-colors">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total de Livros
-            </CardTitle>
-            <BookOpen className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">cadastrados</p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl shadow-sm border transition-colors">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Lendo Atualmente
-            </CardTitle>
-            <BookMarked className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.reading}</div>
-            <p className="text-xs text-muted-foreground">em progresso</p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl shadow-sm border transition-colors">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Livros Finalizados
-            </CardTitle>
-            <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.finished}</div>
-            <p className="text-xs text-muted-foreground">concluídos</p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl shadow-sm border transition-colors">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Páginas Lidas</CardTitle>
-            <FileText className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {stats.totalPages.toLocaleString("pt-BR")}
-            </div>
-            <p className="text-xs text-muted-foreground">páginas totais</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* 🔹 Estatísticas (client-side dinâmico, mas layout server-side) */}
+      <DashboardStatsClient />
 
       {/* Quick Nav + Recent */}
       <div className="max-w-7xl mx-auto grid gap-6 md:grid-cols-2">
@@ -122,7 +62,8 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <RecentBooks books={books} />
+        {/* 🔹 Atividade Recente (client-side dinâmico) */}
+        <RecentBooksClient />
       </div>
     </div>
   );

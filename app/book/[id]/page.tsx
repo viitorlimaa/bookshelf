@@ -11,32 +11,22 @@ import Image from "next/image";
 import { DeleteBookButton } from "@/components/delete-book-button";
 import { getReadingProgress } from "@/data/book-stats";
 import type { Book } from "@/data/types";
+import { getBook } from "@/app/api/books/[id]/route";
 
 export default async function BookDetailsPage({
   params,
 }: {
-  params: { id: number };
+  params: { id: string };
 }) {
-  const { id } = params;
+  const id = Number(params.id);
 
-  // Buscar livro via API
-  const resBook = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`,
-    {
-      cache: "no-store",
-    }
-  );
-  if (resBook.status === 404) notFound();
-  if (!resBook.ok) throw new Error("Erro ao buscar o livro");
+  // Buscar direto do banco
+  const bookFromDb = await getBook(id);
+  if (!bookFromDb) notFound();
 
-  const bookFromApi = await resBook.json();
-
-  // Normalizar para tipagem correta
   const book: Book = {
-    ...bookFromApi,
-    genres: Array.isArray(bookFromApi.genres)
-      ? bookFromApi.genres.map((g: { id: number; name: string }) => g)
-      : [],
+    ...bookFromDb,
+    genres: bookFromDb.genres || [],
   };
 
   const genreNames =

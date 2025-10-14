@@ -1,3 +1,8 @@
+// app/edit/[id]/page.tsx
+"use server";
+
+import { getBook } from "@/app/api/books/[id]/route";
+import { getGenres } from "@/app/api/categories/genres/route";
 import { BookForm } from "@/components/book-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -5,18 +10,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 interface EditBookPageProps {
-  params: { id: number };
+  params: { id: string };
 }
 
 export default async function EditBookPage({ params }: EditBookPageProps) {
-  const { id } = params;
+  const id = Number(params.id);
 
-  // Buscar livro via API interna
-  const resBook = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/books/${id}`, { cache: "no-store" });
+  // Buscar livro direto do banco
+  const book = await getBook(id);
 
-  if (resBook.status === 404) notFound();
-  if (!resBook.ok) throw new Error("Erro ao buscar o livro");
-  const book = await resBook.json();
+  if (!book) notFound();
+
+  // Buscar todos os gêneros
+  const genres = await getGenres();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start py-10 px-4 sm:px-6 lg:px-8 bg-background">
@@ -40,8 +46,7 @@ export default async function EditBookPage({ params }: EditBookPageProps) {
           </div>
         </div>
 
-        {/* Formulário */}
-        <BookForm book={book} />
+        <BookForm book={book} genresFromDb={genres} />
       </div>
     </div>
   );

@@ -1,9 +1,14 @@
+// app/add/page.tsx
 import { BookForm } from "@/components/book-form";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { getGenres } from "../api/categories/genres/route";
 
-export default function AddBookPage() {
+export default async function AddBookPage() {
+  // Buscar todos os gêneros
+  const genres = await getGenres();
+
   return (
     <div className="min-h-screen flex flex-col items-center bg-background px-4 sm:px-6 lg:px-8 py-12">
       {/* Header com botão de voltar */}
@@ -24,9 +29,8 @@ export default function AddBookPage() {
         </div>
       </div>
 
-      {/* Card centralizado para o formulário */}
       <div className="w-full max-w-2xl bg-card rounded-lg shadow-md p-8">
-        <BookForm />
+        <BookForm genresFromDb={genres} />
       </div>
     </div>
   );
