@@ -1,27 +1,26 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Trash2 } from "lucide-react";
-import { deleteBook } from "@/actions";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Trash2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useToast } from "./ui/toast";
+import { deleteBook } from "@/lib/books";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "./ui/alert-dialog";
 
 interface DeleteBookButtonProps {
   bookId: string;
   bookTitle: string;
-  onDelete?: (bookId: string) => void; // opcional
+  onDelete?: (bookId: string) => void;
 }
 
 export function DeleteBookButton({
@@ -29,38 +28,59 @@ export function DeleteBookButton({
   bookTitle,
   onDelete,
 }: DeleteBookButtonProps) {
-  const router = useRouter();
-  const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
 
   const handleDelete = async () => {
-    setIsDeleting(true);
-    const result = await deleteBook(bookId);
+    // Atualiza imediatamente o estado local para remover o livro
+    onDelete?.(bookId);
 
-    if (result.success) {
-      toast({
-        title: "Livro excluído",
-        description: `"${bookTitle}" removido.`,
-        variant: "success",
-      });
-      onDelete?.(bookId); // 🔹 Atualiza o estado do LibraryBooks
-    } else {
+    try {
+      setIsDeleting(true);
+
+      const result = await deleteBook(bookId);
+
+      if (result?.success) {
+        toast({
+          title: "Livro excluído",
+          description: `"${bookTitle}" removido.`,
+          variant: "success",
+        });
+      } else {
+        // Se deu erro no backend, volta o livro pra lista
+        toast({
+          title: "Erro",
+          description: result?.error || "Não foi possível excluir.",
+          variant: "error",
+        });
+        // Opcional: refazer fetch ou re-adicionar livro manualmente
+      }
+    } catch (error) {
+      console.error(error);
       toast({
         title: "Erro",
-        description: result.error || "Não foi possível excluir.",
+        description: "Não foi possível excluir o livro.",
         variant: "error",
       });
+      // Opcional: refazer fetch ou re-adicionar livro manualmente
+    } finally {
+      setIsDeleting(false);
     }
-
-    setIsDeleting(false);
   };
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button size="sm" variant="outline" disabled={isDeleting}>
-          <Trash2 className="h-3 w-3" />
-          <span className="sr-only">Excluir</span>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={isDeleting}
+          className="cursor-pointer"
+        >
+          <Trash2 />
+          <span className="sr-only">
+            Excluir
+          </span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -72,11 +92,13 @@ export function DeleteBookButton({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel className="cursor-pointer">
+            Cancelar
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={isDeleting}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-400 cursor-pointer transition-colors duration-200"
           >
             {isDeleting ? "Excluindo..." : "Excluir"}
           </AlertDialogAction>

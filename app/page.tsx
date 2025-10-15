@@ -1,19 +1,34 @@
 // app/dashboard/page.tsx
+
+import { calculateBookStats } from "@/data/book-stats";
 import { BookOpen, BookMarked, CheckCircle2, FileText } from "lucide-react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
+import { Button } from "@/components/ui/button";
 import { RecentBooksClient } from "@/components/recent-books-client";
-import { DashboardStatsClient } from "@/components/dashboard-stats-client";
+import { getBooks } from "@/lib/books";
+import { RecentBooks } from "@/components/recent-books";
 
 export default async function DashboardPage() {
+  // Busca livros direto no servidor
+  const books = await getBooks();
+  const normalized = books.map((b: any) => ({
+    ...b,
+    genres: b.genres?.map((g: any) => g.name) || [],
+    cover: b.cover || "/placeholder.svg",
+    rating: b.rating ?? 0,
+    status: b.status ?? undefined,
+    year: typeof b.year === "number" ? b.year : undefined,
+  }));
+
+  const stats = calculateBookStats(normalized);
+
   return (
     <div className="min-h-screen bg-background text-foreground py-10 px-4 sm:px-6 lg:px-10 space-y-10 transition-colors">
       {/* Header */}
@@ -24,8 +39,33 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* 🔹 Estatísticas (client-side dinâmico, mas layout server-side) */}
-      <DashboardStatsClient />
+      {/* Estatísticas */}
+      <div className="max-w-7xl mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Total de Livros"
+          value={stats.total}
+          icon={<BookOpen className="h-5 w-5 text-muted-foreground" />}
+          subtitle="cadastrados"
+        />
+        <StatCard
+          title="Lendo Atualmente"
+          value={stats.reading}
+          icon={<BookMarked className="h-5 w-5 text-muted-foreground" />}
+          subtitle="em progresso"
+        />
+        <StatCard
+          title="Livros Finalizados"
+          value={stats.finished}
+          icon={<CheckCircle2 className="h-5 w-5 text-muted-foreground" />}
+          subtitle="concluídos"
+        />
+        <StatCard
+          title="Páginas Lidas"
+          value={stats.totalPages.toLocaleString("pt-BR")}
+          icon={<FileText className="h-5 w-5 text-muted-foreground" />}
+          subtitle="páginas totais"
+        />
+      </div>
 
       {/* Quick Nav + Recent */}
       <div className="max-w-7xl mx-auto grid gap-6 md:grid-cols-2">
@@ -45,8 +85,7 @@ export default async function DashboardPage() {
               variant="outline"
             >
               <Link href="/library">
-                <BookOpen className="mr-2 h-4 w-4" />
-                Ver Biblioteca Completa
+                <BookOpen className="mr-2 h-4 w-4" /> Ver Biblioteca Completa
               </Link>
             </Button>
             <Button
@@ -55,16 +94,30 @@ export default async function DashboardPage() {
               variant="outline"
             >
               <Link href="/add">
-                <BookMarked className="mr-2 h-4 w-4" />
-                Adicionar Novo Livro
+                <BookMarked className="mr-2 h-4 w-4" /> Adicionar Novo Livro
               </Link>
             </Button>
           </CardContent>
         </Card>
 
-        {/* 🔹 Atividade Recente (client-side dinâmico) */}
-        <RecentBooksClient />
+        {/* Atividade Recente (client-side) */}
+        <RecentBooks books={books} />
       </div>
     </div>
+  );
+}
+
+function StatCard({ title, value, subtitle, icon }: any) {
+  return (
+    <Card className="rounded-2xl shadow-sm border transition-colors">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-3xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+      </CardContent>
+    </Card>
   );
 }

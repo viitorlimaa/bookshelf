@@ -11,7 +11,7 @@ import Image from "next/image";
 import { DeleteBookButton } from "@/components/delete-book-button";
 import { getReadingProgress } from "@/data/book-stats";
 import type { Book } from "@/data/types";
-import { getBook } from "@/app/api/books/[id]/route";
+import { getBook } from "@/lib/books";
 
 export default async function BookDetailsPage({
   params,
@@ -21,7 +21,7 @@ export default async function BookDetailsPage({
   const id = Number(params.id);
 
   // Buscar direto do banco
-  const bookFromDb = await getBook(id);
+  const bookFromDb = await getBook(String(id));
   if (!bookFromDb) notFound();
 
   const book: Book = {

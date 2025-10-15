@@ -1,22 +1,5 @@
 import { NextResponse } from "next/server";
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE!;
-
-export async function getGenres() {
-  const res = await fetch(`${BASE_URL}/genres`);
-  if (!res.ok) throw new Error("Erro ao buscar gêneros");
-  return res.json();
-}
-
-export async function createGenre(data: any) {
-  const res = await fetch(`${BASE_URL}/genres`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error("Erro ao criar gênero");
-  return res.json();
-}
+import { getGenres, createGenre } from "@/lib/genres";
 
 // Métodos HTTP
 export async function GET() {

@@ -1,10 +1,10 @@
 // app/edit/[id]/page.tsx
 "use server";
 
-import { getBook } from "@/app/api/books/[id]/route";
-import { getGenres } from "@/app/api/categories/genres/route";
 import { BookForm } from "@/components/book-form";
 import { Button } from "@/components/ui/button";
+import { getBook } from "@/lib/books";
+import { getGenres } from "@/lib/genres";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,7 +17,7 @@ export default async function EditBookPage({ params }: EditBookPageProps) {
   const id = Number(params.id);
 
   // Buscar livro direto do banco
-  const book = await getBook(id);
+  const book = await getBook(String(id));
 
   if (!book) notFound();
 

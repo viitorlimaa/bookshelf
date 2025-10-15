@@ -1,9 +1,9 @@
 // app/add/page.tsx
 import { BookForm } from "@/components/book-form";
 import { Button } from "@/components/ui/button";
+import { getGenres } from "@/lib/genres";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getGenres } from "../api/categories/genres/route";
 
 export default async function AddBookPage() {
   // Buscar todos os gêneros

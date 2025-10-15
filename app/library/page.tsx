@@ -3,7 +3,6 @@ import { LibraryFilters } from "@/components/library-filters";
 import { LibraryToaster } from "@/components/ui/client-side";
 import { LibraryBooks } from "@/components/library-books";
 
-
 interface LibraryPageProps {
   searchParams?: {
     query?: string;
@@ -25,13 +24,17 @@ export default function LibraryPage({ searchParams }: LibraryPageProps) {
           </p>
         </div>
 
-        <Suspense fallback={<div className="text-center">Carregando filtros...</div>}>
+        <Suspense
+          fallback={<div className="text-center">Carregando filtros...</div>}
+        >
           <div className="w-full max-w-5xl mx-auto">
             <LibraryFilters />
           </div>
         </Suspense>
 
-        <Suspense fallback={<div className="text-center">Carregando livros...</div>}>
+        <Suspense
+          fallback={<div className="text-center">Carregando livros...</div>}
+        >
           <div className="w-full max-w-6xl mx-auto">
             <LibraryBooks searchParams={searchParams} />
           </div>
