@@ -1,49 +1,45 @@
-// context/LibraryContext.tsx
+// src/components/library-context.tsx
 "use client";
-import {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
+
+import React, { createContext, useContext, useState } from "react";
 import type { Book } from "@/data/types";
 
 interface LibraryContextValue {
   books: Book[];
-  setBooks: (books: Book[]) => void;
-  removeBook: (id: string) => void;
+  setBooks: React.Dispatch<React.SetStateAction<Book[]>>;
+  addBook: (book: Book) => void;
+  updateBook: (book: Book) => void;
+  removeBook: (id: number) => void;
 }
 
 const LibraryContext = createContext<LibraryContextValue | undefined>(
   undefined
 );
 
-export const LibraryProvider = ({ children }: { children: ReactNode }) => {
-  const [books, setBooks] = useState<Book[]>([]);
-  // LibraryProvider.tsx
-  useEffect(() => {
-    async function fetchBooks() {
-      const res = await fetch("/api/books");
-      const data = await res.json();
-      setBooks(data);
-    }
-    fetchBooks();
-  }, []);
+export const LibraryProvider: React.FC<{
+  initialBooks?: Book[];
+  children: React.ReactNode;
+}> = ({ initialBooks = [], children }) => {
+  const [books, setBooks] = useState<Book[]>(initialBooks);
 
-  const removeBook = (id: string) => {
-    setBooks((prev) => prev.filter((b) => b.id !== id));
-  };
+  const addBook = (book: Book) => setBooks((prev) => [book, ...prev]);
+  const updateBook = (book: Book) =>
+    setBooks((prev) => prev.map((b) => (b.id === book.id ? book : b)));
+  const removeBook = (id: string | number) =>
+    setBooks((prev) => prev.filter((b) => b.id !== String(id)));
 
   return (
-    <LibraryContext.Provider value={{ books, setBooks, removeBook }}>
+    <LibraryContext.Provider
+      value={{ books, setBooks, addBook, updateBook, removeBook }}
+    >
       {children}
     </LibraryContext.Provider>
   );
 };
 
 export const useLibrary = () => {
-  const ctx = useContext(LibraryContext);
-  if (!ctx) throw new Error("useLibrary must be used within LibraryProvider");
-  return ctx;
+  const context = useContext(LibraryContext);
+  if (!context)
+    throw new Error("useLibrary must be used within a LibraryProvider");
+  return context;
 };

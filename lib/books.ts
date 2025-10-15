@@ -1,10 +1,9 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE!;
 
-// =======================
-// BOOKS
-// =======================
 export async function getBooks() {
-  const res = await fetch(`${BASE_URL}/books`);
+  const res = await fetch(`${BASE_URL}/books`, {
+    cache: "no-store", // 👈 força buscar dados atualizados no servidor
+  });
   if (!res.ok) throw new Error("Erro ao buscar livros");
   return res.json();
 }
@@ -20,7 +19,9 @@ export async function createBook(data: any) {
 }
 
 export async function getBook(id: string) {
-  const res = await fetch(`${BASE_URL}/books/${id}`);
+  const res = await fetch(`${BASE_URL}/books/${id}`, {
+    cache: "no-store",
+  });
   if (!res.ok) throw new Error("Erro ao buscar livro");
   return res.json();
 }
@@ -39,12 +40,10 @@ export async function deleteBook(id: string) {
   const res = await fetch(`${BASE_URL}/books/${id}`, { method: "DELETE" });
 
   if (!res.ok) {
-    // Tenta ler o texto de erro da resposta
     const text = await res.text();
     console.error("Erro ao deletar livro:", text);
     return { success: false, error: text || "Erro ao deletar livro" };
   }
 
-  // Sucesso: retorna sempre um objeto consistente
   return { success: true };
 }

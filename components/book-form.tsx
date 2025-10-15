@@ -33,6 +33,7 @@ interface ApiGenre {
 interface Props {
   book?: Book;
   genresFromDb: ApiGenre[];
+  onUpdate?: (book: Book) => void; // opcional, caso queira atualizar a lista de livros
 }
 
 type FormState = {
@@ -50,11 +51,11 @@ type FormState = {
   notes: string;
 };
 
-export function BookForm({ book, genresFromDb }: Props) {
+export function BookForm({ book, genresFromDb, onUpdate }: Props) {
   const router = useRouter();
   const { toast } = useToast();
-
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState<FormState>({
     title: book?.title || "",
     author: book?.author || "",
@@ -74,6 +75,7 @@ export function BookForm({ book, genresFromDb }: Props) {
     synopsis: book?.synopsis || "",
     notes: book?.notes || "",
   });
+
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
   const updateField = (field: keyof FormState, value: string | number) => {
@@ -175,8 +177,6 @@ export function BookForm({ book, genresFromDb }: Props) {
       });
 
       const data = await res.json();
-      console.log("Resposta do backend:", data);
-
       if (!res.ok) throw new Error(data.message || "Erro ao salvar livro");
 
       toast({
@@ -184,6 +184,9 @@ export function BookForm({ book, genresFromDb }: Props) {
         description: `"${formData.title}" salvo com sucesso.`,
         variant: "success",
       });
+
+      // Atualiza a lista sem reload
+      setFormData((prev) => ({ ...prev, ...formData }));
 
       router.push("/library");
     } catch (err: any) {
@@ -197,7 +200,6 @@ export function BookForm({ book, genresFromDb }: Props) {
       setIsSubmitting(false);
     }
   };
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -247,7 +249,7 @@ export function BookForm({ book, genresFromDb }: Props) {
             </div>
           </div>
 
-          {/* Gênero */}
+          {/* Gênero e Avaliação */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="genre">Gênero</Label>
@@ -273,8 +275,6 @@ export function BookForm({ book, genresFromDb }: Props) {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Avaliação */}
             <div>
               <Label>Avaliação</Label>
               <div className="flex gap-1 mt-1">
@@ -345,7 +345,6 @@ export function BookForm({ book, genresFromDb }: Props) {
                 </SelectContent>
               </Select>
             </div>
-
             <div>
               <Label>ISBN</Label>
               <Input
@@ -353,7 +352,6 @@ export function BookForm({ book, genresFromDb }: Props) {
                 onChange={(e) => updateField("isbn", e.target.value)}
               />
             </div>
-
             <div>
               <Label>Capa (URL)</Label>
               <Input
