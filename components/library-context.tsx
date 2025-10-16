@@ -1,4 +1,3 @@
-// src/components/library-context.tsx
 "use client";
 
 import React, { createContext, useContext, useState } from "react";
@@ -9,7 +8,7 @@ interface LibraryContextValue {
   setBooks: React.Dispatch<React.SetStateAction<Book[]>>;
   addBook: (book: Book) => void;
   updateBook: (book: Book) => void;
-  removeBook: (id: number) => void;
+  removeBook: (id: string) => void;
 }
 
 const LibraryContext = createContext<LibraryContextValue | undefined>(
@@ -25,8 +24,8 @@ export const LibraryProvider: React.FC<{
   const addBook = (book: Book) => setBooks((prev) => [book, ...prev]);
   const updateBook = (book: Book) =>
     setBooks((prev) => prev.map((b) => (b.id === book.id ? book : b)));
-  const removeBook = (id: string | number) =>
-    setBooks((prev) => prev.filter((b) => b.id !== String(id)));
+  const removeBook = (id: string) =>
+    setBooks((prev) => prev.filter((b) => String(b.id) !== String(id)));
 
   return (
     <LibraryContext.Provider

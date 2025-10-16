@@ -18,6 +18,7 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
   const books = await getBooks();
   const normalized = books.map((b: any) => ({
     ...b,
+    id: String(b.id),
     genres: b.genres?.map((g: any) => g.name) || [],
     cover: b.cover || "/placeholder.svg",
     rating: b.rating ?? 0,

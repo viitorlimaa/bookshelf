@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { READING_STATUS, type Book, type ReadingStatus } from "@/data/types";
+import { useBooksActions } from "@/components/book-actions";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/text-area";
@@ -33,7 +34,6 @@ interface ApiGenre {
 interface Props {
   book?: Book;
   genresFromDb: ApiGenre[];
-  onUpdate?: (book: Book) => void; // opcional, caso queira atualizar a lista de livros
 }
 
 type FormState = {
@@ -51,9 +51,10 @@ type FormState = {
   notes: string;
 };
 
-export function BookForm({ book, genresFromDb, onUpdate }: Props) {
+export function BookForm({ book, genresFromDb }: Props) {
   const router = useRouter();
   const { toast } = useToast();
+  const { createBook, editBook } = useBooksActions();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<FormState>({
@@ -130,7 +131,6 @@ export function BookForm({ book, genresFromDb, onUpdate }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const newErrors: typeof errors = {};
     if (!formData.title?.trim()) newErrors.title = "Título é obrigatório";
     if (!formData.author?.trim()) newErrors.author = "Autor é obrigatório";
@@ -141,7 +141,6 @@ export function BookForm({ book, genresFromDb, onUpdate }: Props) {
 
     try {
       const selectedGenre = genresFromDb.find((g) => g.name === formData.genre);
-
       if (!selectedGenre) {
         toast({
           title: "Erro",
@@ -152,7 +151,7 @@ export function BookForm({ book, genresFromDb, onUpdate }: Props) {
         return;
       }
 
-      const payload = {
+      const payload: Partial<Book> = {
         title: formData.title.trim(),
         author: formData.author.trim(),
         year: parseInt(formData.year || "0", 10) || 0,
@@ -167,27 +166,22 @@ export function BookForm({ book, genresFromDb, onUpdate }: Props) {
         genreIds: [selectedGenre.id],
       };
 
-      const url = book ? `/api/books/${book.id}` : "/api/books";
-      const method = book ? "PATCH" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Erro ao salvar livro");
-
-      toast({
-        title: book ? "Livro atualizado" : "Livro adicionado",
-        description: `"${formData.title}" salvo com sucesso.`,
-        variant: "success",
-      });
-
-      // Atualiza a lista sem reload
-      setFormData((prev) => ({ ...prev, ...formData }));
-
+      if (book) {
+        await editBook(book.id, payload); // id sempre tratado como string no hook
+        toast({
+          title: "Livro atualizado",
+          description: `"${formData.title}" atualizado com sucesso.`,
+          variant: "success",
+        });
+      } else {
+        await createBook(payload);
+        toast({
+          title: "Livro adicionado",
+          description: `"${formData.title}" adicionado com sucesso.`,
+          variant: "success",
+        });
+      }
+      router.refresh();
       router.push("/library");
     } catch (err: any) {
       console.error("❌ Erro ao salvar livro:", err);
@@ -200,6 +194,30 @@ export function BookForm({ book, genresFromDb, onUpdate }: Props) {
       setIsSubmitting(false);
     }
   };
+  useEffect(() => {
+    if (book) {
+      setFormData({
+        title: book.title || "",
+        author: book.author || "",
+        genre:
+          book.genres && book.genres.length > 0
+            ? typeof book.genres[0] === "string"
+              ? book.genres[0]
+              : (book.genres[0] as ApiGenre).name
+            : "",
+        year: book.year?.toString() || "",
+        pages: book.pages?.toString() || "",
+        currentPage: book.currentPage?.toString() || "",
+        status: book.status || "QUERO_LER",
+        isbn: book.isbn || "",
+        cover: book.cover || "",
+        rating: book.rating || 0,
+        synopsis: book.synopsis || "",
+        notes: book.notes || "",
+      });
+    }
+  }, [book]);
+
   return (
     <form
       onSubmit={handleSubmit}

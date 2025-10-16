@@ -11,15 +11,16 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { RecentBooksClient } from "@/components/recent-books-client";
 import { getBooks } from "@/lib/books";
 import { RecentBooks } from "@/components/recent-books";
+import { RecentBooksClient } from "@/components/recent-books-client";
 
 export default async function DashboardPage() {
   // Busca livros direto no servidor
   const books = await getBooks();
   const normalized = books.map((b: any) => ({
     ...b,
+    id: String(b.id),
     genres: b.genres?.map((g: any) => g.name) || [],
     cover: b.cover || "/placeholder.svg",
     rating: b.rating ?? 0,
@@ -99,9 +100,8 @@ export default async function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
-
         {/* Atividade Recente (client-side) */}
-        <RecentBooks books={books} />
+        <RecentBooksClient />
       </div>
     </div>
   );

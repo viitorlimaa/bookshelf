@@ -88,7 +88,6 @@ export function BookCard({ book, onDelete }: BookCardProps) {
         <DeleteBookButton
           bookId={book.id}
           bookTitle={book.title}
-          onDelete={onDelete}
         />
       </CardFooter>
     </Card>

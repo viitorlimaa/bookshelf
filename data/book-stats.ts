@@ -6,9 +6,8 @@ export function calculateBookStats(books: Book[]) {
   const finished = books.filter((book) => book.status === "LIDO").length;
 
   const totalPages = books.reduce((sum, book) => {
-    // Usa currentPage se disponível, caso contrário usa pages se o livro estiver LIDO
-    if (book.currentPage && book.currentPage > 0) return sum + book.currentPage;
     if (book.status === "LIDO") return sum + (book.pages || 0);
+    if (book.currentPage && book.currentPage > 0) return sum + book.currentPage;
     return sum;
   }, 0);
 

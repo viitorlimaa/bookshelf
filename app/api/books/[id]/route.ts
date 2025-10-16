@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   return NextResponse.json(book);
 }
 
-export async function PUT(req: Request) {
+export async function PATCH(req: Request) {
   const id = req.url.split("/").pop()!;
   const body = await req.json();
   const book = await updateBook(id, body);
