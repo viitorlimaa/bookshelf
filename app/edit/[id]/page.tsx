@@ -1,6 +1,4 @@
 // app/edit/[id]/page.tsx
-"use server";
-
 import { BookForm } from "@/components/book-form";
 import { Button } from "@/components/ui/button";
 import { getBook } from "@/lib/books";

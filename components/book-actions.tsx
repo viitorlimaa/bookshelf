@@ -3,11 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useLibrary } from "@/components/library-context";
 import {
-  getBooks,
-  createBook as createBookApi,
-  updateBook as updateBookApi,
-  deleteBook as deleteBookApi,
-} from "@/lib/books";
+  createBook as createBookAction,
+  deleteBook as deleteBookAction,
+  updateBook as updateBookAction,
+} from "@/app/actions/books";
 import type { Book } from "@/data/types";
 
 export function useBooksActions() {
@@ -16,7 +15,9 @@ export function useBooksActions() {
 
   async function refreshBooks() {
     try {
-      const fresh: Book[] = await getBooks();
+      const response = await fetch("/api/books", { cache: "no-store" });
+      if (!response.ok) throw new Error("Erro ao atualizar lista de livros");
+      const fresh: Book[] = await response.json();
       setBooks(fresh);
     } catch (err) {
       console.error("Erro ao atualizar lista de livros:", err);
@@ -24,14 +25,14 @@ export function useBooksActions() {
   }
 
   async function createBook(data: Partial<Book>) {
-    await createBookApi(data);
+    await createBookAction(data);
     await refreshBooks();
     router.refresh();
   }
 
   async function editBook(id: string | undefined, data: Partial<Book>) {
     if (!id) return;
-    await updateBookApi(id, data);
+    await updateBookAction(id, data);
     await refreshBooks();
     router.refresh();
   }
@@ -41,7 +42,7 @@ export function useBooksActions() {
     if (!id) return { success: false, error: "ID não fornecido" };
 
     try {
-      const result = await deleteBookApi(id);
+      const result = await deleteBookAction(id);
 
       if (result.success) {
         // remove o livro localmente (atualiza UI instantaneamente)
