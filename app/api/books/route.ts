@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getBooks, createBook } from "@/lib/books";
 
+export const dynamic = "force-dynamic";
+
 // Método HTTP para Next.js
 export async function GET() {
   const books = await getBooks();

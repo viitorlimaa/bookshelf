@@ -1,14 +1,14 @@
-"use server";
-
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { Book } from "@/data/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE!;
+const BOOKS_CACHE_TAG = "books";
 
 // Busca todos os livros
-export async function getBooks() {
+export async function getBooks(): Promise<Book[]> {
   const res = await fetch(`${BASE_URL}/books`, {
-    cache: "no-store", // garante dados atualizados
+    cache: "force-cache",
+    next: { tags: [BOOKS_CACHE_TAG] },
   });
 
   if (!res.ok) throw new Error("Erro ao buscar livros");
@@ -16,26 +16,24 @@ export async function getBooks() {
 }
 
 // Cria novo livro
-export async function createBook(data: any) {
+export async function createBook(data: Partial<Book>) {
   const res = await fetch(`${BASE_URL}/books`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
   if (!res.ok) throw new Error("Erro ao criar livro");
 
-  // Invalida cache do Dashboard e Library
-  revalidatePath("/dashboard");
-  revalidatePath("/library");
+  revalidateBooks();
 
   return res.json();
 }
 
 // Busca um livro específico
-export async function getBook(id: string) {
+export async function getBook(id: string): Promise<Book> {
   const res = await fetch(`${BASE_URL}/books/${id}`, {
-    cache: "no-store",
+    cache: "force-cache",
+    next: { tags: [BOOKS_CACHE_TAG, `${BOOKS_CACHE_TAG}:${id}`] },
   });
 
   if (!res.ok) throw new Error("Erro ao buscar livro");
@@ -55,8 +53,7 @@ export async function updateBook(id: string, data: Partial<Book>) {
     throw new Error(text || `Erro ao atualizar livro (${res.status})`);
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/library");
+  revalidateBooks(id);
 
   return res.json();
 }
@@ -71,8 +68,20 @@ export async function deleteBook(id: string) {
     return { success: false, error: text || "Erro ao deletar livro" };
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/library");
+  revalidateBooks(id);
 
   return { success: true };
+}
+
+function revalidateBooks(id?: string) {
+  revalidateTag(BOOKS_CACHE_TAG);
+  if (id) revalidateTag(`${BOOKS_CACHE_TAG}:${id}`);
+
+  revalidatePath("/");
+  revalidatePath("/library");
+
+  if (id) {
+    revalidatePath(`/book/${id}`);
+    revalidatePath(`/edit/${id}`);
+  }
 }
