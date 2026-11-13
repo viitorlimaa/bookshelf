@@ -5,6 +5,7 @@ import { useLibrary } from "@/components/library-context";
 import {
   createBook as createBookAction,
   deleteBook as deleteBookAction,
+  refreshBooks as refreshBooksAction,
   updateBook as updateBookAction,
 } from "@/app/actions/books";
 import type { Book } from "@/data/types";
@@ -15,9 +16,7 @@ export function useBooksActions() {
 
   async function refreshBooks() {
     try {
-      const response = await fetch("/api/books", { cache: "no-store" });
-      if (!response.ok) throw new Error("Erro ao atualizar lista de livros");
-      const fresh: Book[] = await response.json();
+      const fresh: Book[] = await refreshBooksAction();
       setBooks(fresh);
     } catch (err) {
       console.error("Erro ao atualizar lista de livros:", err);

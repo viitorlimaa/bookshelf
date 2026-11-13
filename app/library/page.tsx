@@ -4,7 +4,9 @@ import { LibraryProvider } from "@/components/library-context";
 import { LibraryFilters } from "@/components/library-filters";
 import { LibraryBooks } from "@/components/library-books";
 import { LibraryToaster } from "@/components/ui/client-side";
-import { getBooks } from "@/lib/books";
+import { getBooks } from "@/lib/reads";
+
+export const dynamic = "force-dynamic";
 
 interface LibraryPageProps {
   searchParams?: {

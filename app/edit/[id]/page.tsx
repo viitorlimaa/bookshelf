@@ -1,11 +1,12 @@
 // app/edit/[id]/page.tsx
 import { BookForm } from "@/components/book-form";
 import { Button } from "@/components/ui/button";
-import { getBook } from "@/lib/books";
-import { getGenres } from "@/lib/genres";
+import { getBook, getGenres } from "@/lib/reads";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 
 interface EditBookPageProps {
   params: { id: string };
