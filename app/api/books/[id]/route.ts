@@ -1,4 +1,5 @@
-import { deleteBook, getBook, updateBook } from "@/lib/books";
+import { deleteBook, updateBook } from "@/lib/book-mutations";
+import { getBook } from "@/lib/reads";
 import { NextResponse } from "next/server";
 
 // Métodos HTTP
@@ -18,12 +19,12 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const id = req.url.split("/").pop()!;
-    await deleteBook(id);
+    const result = await deleteBook(id);
+    if (!result.success) {
+      return NextResponse.json(result, { status: 500 });
+    }
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Erro ao deletar livro:", error);
     return new Response(

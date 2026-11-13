@@ -11,9 +11,11 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { getBooks } from "@/lib/books";
+import { getBooks } from "@/lib/reads";
 import { RecentBooks } from "@/components/recent-books";
 import { RecentBooksClient } from "@/components/recent-books-client";
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   // Busca livros direto no servidor

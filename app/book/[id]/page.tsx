@@ -9,7 +9,9 @@ import Image from "next/image";
 import { DeleteBookButton } from "@/components/delete-book-button";
 import { getReadingProgress } from "@/data/book-stats";
 import type { Book } from "@/data/types";
-import { getBook } from "@/lib/books";
+import { getBook } from "@/lib/reads";
+
+export const dynamic = "force-dynamic";
 
 export default async function BookDetailsPage({
   params,

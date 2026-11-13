@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getBooks, createBook } from "@/lib/books";
+import { createBook } from "@/lib/book-mutations";
+import { getBooks } from "@/lib/reads";
 
 export const dynamic = "force-dynamic";
 

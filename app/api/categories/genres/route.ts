@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getGenres, createGenre } from "@/lib/genres";
+import { createGenre } from "@/lib/genres";
+import { getGenres } from "@/lib/reads";
 
 // Métodos HTTP
 export async function GET() {
