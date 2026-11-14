@@ -12,7 +12,7 @@ import { GENRES, READING_STATUS } from "@/data/types";
 import { Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "./ui/button";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function LibraryFilters() {
   const router = useRouter();
@@ -21,41 +21,52 @@ export function LibraryFilters() {
   const query = searchParams.get("query") || "";
   const genre = searchParams.get("genre") || "all";
   const status = searchParams.get("status") || "all";
-  const [search, setSearch] = useState(searchParams.get("query") || "");
+  const [search, setSearch] = useState(query);
 
-  const updateFilters = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-    // Clear other filters when setting a new one
-    if (key === "query" && value) {
-      params.delete("genre");
-      params.delete("status");
-    } else if (key === "genre" && value) {
-      params.delete("query");
-      params.delete("status");
-    } else if (key === "status" && value) {
-      params.delete("query");
-      params.delete("genre");
-    }
-    router.push(`/library?${params.toString()}`);
-  };
+  const updateFilters = useCallback(
+    (key: string, value: string, method: "push" | "replace" = "push") => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value && value !== "all") {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
 
-  const clearFilters = () => {
-    router.push("/library");
-  };
+      const queryString = params.toString();
+      if (queryString === searchParams.toString()) return;
 
-  const hasActiveFilters = query || genre !== "all" || status !== "all";
-  // e logo abaixo adiciona:
+      const href = queryString ? `/library?${queryString}` : "/library";
+      const options = { scroll: false };
+      if (method === "replace") {
+        router.replace(href, options);
+      } else {
+        router.push(href, options);
+      }
+    },
+    [router, searchParams]
+  );
+
+  const hasActiveFilters =
+    Boolean(search.trim() || query) || genre !== "all" || status !== "all";
+
   useEffect(() => {
+    setSearch(query);
+  }, [query]);
+
+  useEffect(() => {
+    const normalizedSearch = search.trim();
+    if (search === query || normalizedSearch === query) return;
+
     const timeout = setTimeout(() => {
-      updateFilters("query", search);
+      updateFilters("query", normalizedSearch, "replace");
     }, 400);
     return () => clearTimeout(timeout);
-  }, [search]);
+  }, [search, query, updateFilters]);
+
+  const clearFilters = () => {
+    setSearch("");
+    router.replace("/library", { scroll: false });
+  };
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center">
@@ -71,7 +82,7 @@ export function LibraryFilters() {
 
       <Select
         value={genre}
-        onValueChange={(value) => updateFilters("genre", value)}
+        onValueChange={(value) => updateFilters("genre", value, "push")}
       >
         <SelectTrigger className="w-full md:w-[200px]">
           <SelectValue placeholder="Filtrar por gênero" />
@@ -88,7 +99,7 @@ export function LibraryFilters() {
 
       <Select
         value={status}
-        onValueChange={(value) => updateFilters("status", value)}
+        onValueChange={(value) => updateFilters("status", value, "push")}
       >
         <SelectTrigger className="w-full md:w-[200px]">
           <SelectValue placeholder="Filtrar por status" />
