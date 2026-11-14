@@ -9,15 +9,15 @@ interface RecentBooksProps {
 }
 
 export function RecentBooks({ books }: RecentBooksProps) {
-  const recentBooks = books
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+  const recentBooks = [...books]
+    .sort((a, b) => b.id.localeCompare(a.id, undefined, { numeric: true }))
     .slice(0, 5)
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Atividade Recente</CardTitle>
-        <CardDescription>Livros atualizados recentemente</CardDescription>
+        <CardTitle>Adicionados recentemente</CardTitle>
+        <CardDescription>Livros adicionados mais recentemente</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {recentBooks.length === 0 ? (
