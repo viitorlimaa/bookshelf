@@ -1,9 +1,13 @@
-import { Spinner } from "@/components/ui/spinner";
+import { BookGridSkeleton } from "@/components/book-grid-skeleton";
 
 export default function Loading() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
-      <Spinner className="size-8 text-white" />
+    <div
+      aria-label="Carregando biblioteca"
+      aria-busy="true"
+      className="container mx-auto px-4 py-8 sm:px-6 lg:px-8"
+    >
+      <BookGridSkeleton />
     </div>
   );
 }
