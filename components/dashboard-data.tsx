@@ -7,30 +7,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { calculateBookStats } from "@/data/book-stats";
-import type { Book } from "@/data/types";
 import { getBooks } from "@/lib/reads";
 import { RecentBooks } from "@/components/recent-books";
-
-type ApiBook = Omit<Book, "id" | "genres" | "year"> & {
-  id: string | number;
-  genres?: Array<string | { name: string }> | null;
-  year?: number | string | null;
-};
+import { normalizeBook } from "@/data/utils";
 
 export async function DashboardData() {
-  const apiBooks: ApiBook[] = await getBooks();
-  const books: Book[] = apiBooks.map((book) => ({
-    ...book,
-    id: String(book.id),
-    genres:
-      book.genres?.map((genre) =>
-        typeof genre === "string" ? genre : genre.name
-      ) ?? [],
-    cover: book.cover || "/placeholder.svg",
-    rating: book.rating ?? 0,
-    status: book.status ?? undefined,
-    year: typeof book.year === "number" ? book.year : undefined,
-  }));
+  const apiBooks = await getBooks();
+  const books = apiBooks.map(normalizeBook);
   const stats = calculateBookStats(books);
 
   return (

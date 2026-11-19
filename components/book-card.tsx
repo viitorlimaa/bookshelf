@@ -1,31 +1,37 @@
 import type { Book } from "@/data/types";
 import { Eye, Pencil, Star, Trash2 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import { BookCover } from "@/components/book-cover";
 import { DeleteBookButton } from "@/components/delete-book-button";
 import { Card, CardHeader, CardContent, CardFooter } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { getBookCover } from "@/data/cover-images";
 
 interface BookCardProps {
   book: Book;
   onDelete?: (bookId: string) => void;
+  priority?: boolean;
 }
 
-export function BookCard({ book, onDelete }: BookCardProps) {
-  const genres = Array.isArray(book.genres)
-    ? book.genres.map((g) => (typeof g === "string" ? g : (g as any).name))
-    : [];
+export function BookCard({ book, onDelete, priority = false }: BookCardProps) {
+  const genres = book.genres ?? [];
   const genreName = genres[0] || "";
   const rating = book.rating ?? 0;
-  const cover = book.cover || "/placeholder.svg";
+  const cover = getBookCover(book.title, book.cover);
   const status = book.status || "QUERO_LER";
 
   return (
     <Card className="group flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 hover:border-border">
       <CardHeader className="p-0">
         <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted">
-          <Image src={cover} alt={book.title} fill className="object-cover" />
+          <BookCover
+            src={cover}
+            alt={book.title}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            className="object-cover"
+            priority={priority}
+          />
         </div>
       </CardHeader>
 

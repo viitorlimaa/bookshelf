@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Calendar, Pencil, Star } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import { BookCover } from "@/components/book-cover";
 import { DeleteBookButton } from "@/components/delete-book-button";
 import { getReadingProgress } from "@/data/book-stats";
-import type { Book } from "@/data/types";
+import { getBookCover } from "@/data/cover-images";
 import { getBook } from "@/lib/reads";
+import { normalizeBook } from "@/data/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -24,13 +25,10 @@ export default async function BookDetailsPage({
   const bookFromDb = await getBook(String(id));
   if (!bookFromDb) notFound();
 
-  const book: Book = {
-    ...bookFromDb,
-    genres: bookFromDb.genres || [],
-  };
+  const book = normalizeBook(bookFromDb);
+  const cover = getBookCover(book.title, book.cover);
 
-  const genreNames =
-    book.genres?.map((g: any) => (typeof g === "string" ? g : g.name)) || [];
+  const genreNames = book.genres ?? [];
 
   const readingProgress = getReadingProgress(book);
 
@@ -88,11 +86,11 @@ export default async function BookDetailsPage({
           <div className="md:col-span-1 w-full">
             <Card className="overflow-hidden w-full">
               <div className="relative aspect-[2/3] w-full">
-                {book.cover ? (
-                  <Image
-                    src={book.cover}
+                {cover !== "/placeholder.svg" ? (
+                  <BookCover
+                    src={cover}
                     alt={book.title}
-                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover"
                     priority
                   />

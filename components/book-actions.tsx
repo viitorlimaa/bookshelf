@@ -55,9 +55,11 @@ export function useBooksActions() {
       return result;
     } catch (err) {
       console.error("Erro ao deletar livro:", err);
+      const message =
+        err instanceof Error ? err.message : "Erro desconhecido";
       return {
         success: false,
-        error: (err as any)?.message || "Erro desconhecido",
+        error: message,
       };
     }
   }

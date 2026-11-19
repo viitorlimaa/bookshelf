@@ -2,6 +2,7 @@
 
 import type { Book } from "@/data/types";
 import { getBooks } from "@/lib/reads";
+import { normalizeBook } from "@/data/utils";
 import {
   createBook as createBookRequest,
   deleteBook as deleteBookRequest,
@@ -9,7 +10,8 @@ import {
 } from "@/lib/book-mutations";
 
 export async function refreshBooks() {
-  return getBooks();
+  const books = await getBooks();
+  return books.map(normalizeBook);
 }
 
 export async function createBook(data: Partial<Book>) {

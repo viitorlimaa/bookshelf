@@ -5,6 +5,7 @@ import { getBook, getGenres } from "@/lib/reads";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { normalizeBook } from "@/data/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +17,10 @@ export default async function EditBookPage({ params }: EditBookPageProps) {
   const id = Number(params.id);
 
   // Buscar livro direto do banco
-  const book = await getBook(String(id));
+  const apiBook = await getBook(String(id));
 
-  if (!book) notFound();
+  if (!apiBook) notFound();
+  const book = normalizeBook(apiBook);
 
   // Buscar todos os gêneros
   const genres = await getGenres();

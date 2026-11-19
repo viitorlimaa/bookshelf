@@ -4,9 +4,23 @@ import { twMerge } from "tailwind-merge";
 import {
   GENRES,
   READING_STATUS,
+  type ApiBook,
+  type Book,
   type Genre,
   type ReadingStatus,
 } from "@/data/types";
+
+export function normalizeBook(api: ApiBook): Book {
+  return {
+    ...api,
+    id: String(api.id),
+    genres: api.genres?.map((genre) => genre.name) ?? [],
+    cover: api.cover || "/placeholder.svg",
+    rating: typeof api.rating === "number" ? api.rating : 0,
+    status: api.status ?? undefined,
+    year: typeof api.year === "number" ? api.year : undefined,
+  };
+}
 
 /**
  * Junta classes do Tailwind de forma inteligente,
