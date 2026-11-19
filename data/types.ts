@@ -1,7 +1,3 @@
-// ===============================
-//  Tipos e enums
-// ===============================
-
 export type ReadingStatus =
   | "QUERO_LER"
   | "LENDO"
@@ -15,12 +11,12 @@ export interface Genre {
 }
 
 export interface Book {
-  id: string ;
+  id: string;
   title: string;
   author: string;
-  genre?: string; 
+  genre?: string;
   genres?: string[];
-   genreIds?: number[]; // <-- adicione
+  genreIds?: number[];
   year?: number;
   isbn?: string;
   status?: ReadingStatus;
@@ -34,9 +30,14 @@ export interface Book {
   updatedAt: string;
 }
 
-// ===============================
-//  Constantes
-// ===============================
+export interface ApiBook
+  extends Omit<Book, "id" | "genres" | "year" | "rating" | "status"> {
+  id: string | number;
+  genres?: Array<{ id: number; name: string }> | null;
+  year?: number | string | null;
+  rating?: number | string | null;
+  status?: ReadingStatus | null;
+}
 
 export const GENRES: string[] = [
   "Literatura Brasileira",

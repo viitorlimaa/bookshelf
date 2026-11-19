@@ -1,8 +1,6 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE!;
 
-// GENRES
-// =======================
-export async function createGenre(data: any) {
+export async function createGenre(data: { name: string }) {
   const res = await fetch(`${BASE_URL}/genres`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { READING_STATUS, type Book, type ReadingStatus } from "@/data/types";
+import { BookCover } from "@/components/book-cover";
 import { useBooksActions } from "@/components/book-actions";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Star } from "lucide-react";
 import { useToast } from "./ui/toast";
+import { getBookCover } from "@/data/cover-images";
 
 interface ApiGenre {
   id: number;
@@ -104,7 +106,7 @@ export function BookForm({ book, genresFromDb }: Props) {
   };
 
   const calculateProgress = () => {
-    const fields = [
+    const fields: (keyof FormState)[] = [
       "title",
       "author",
       "genre",
@@ -119,7 +121,7 @@ export function BookForm({ book, genresFromDb }: Props) {
       "notes",
     ];
     const filled = fields.filter((f) => {
-      const v = (formData as any)[f];
+      const v = formData[f];
       if (v === null || v === undefined || v === "") return false;
       if (!isNaN(Number(v))) return Number(v) > 0;
       return true;
@@ -151,6 +153,7 @@ export function BookForm({ book, genresFromDb }: Props) {
         return;
       }
 
+      const cover = formData.cover?.trim();
       const payload: Partial<Book> = {
         title: formData.title.trim(),
         author: formData.author.trim(),
@@ -159,7 +162,7 @@ export function BookForm({ book, genresFromDb }: Props) {
         currentPage: parseInt(formData.currentPage || "0", 10) || 0,
         status: formData.status as ReadingStatus,
         isbn: formData.isbn?.trim() || undefined,
-        cover: formData.cover?.trim() || "https://via.placeholder.com/150",
+        ...(cover ? { cover } : {}),
         rating: Number(formData.rating) || 0,
         synopsis: formData.synopsis?.trim() || "Sem sinopse",
         notes: formData.notes?.trim() || undefined,
@@ -183,11 +186,13 @@ export function BookForm({ book, genresFromDb }: Props) {
       }
       router.refresh();
       router.push("/library");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ Erro ao salvar livro:", err);
+      const message =
+        err instanceof Error ? err.message : "Erro ao salvar o livro.";
       toast({
         title: "Erro",
-        description: err.message || "Erro ao salvar o livro.",
+        description: message,
         variant: "error",
       });
     } finally {
@@ -217,6 +222,8 @@ export function BookForm({ book, genresFromDb }: Props) {
       });
     }
   }, [book]);
+
+  const coverPreview = getBookCover(formData.title, formData.cover);
 
   return (
     <form
@@ -376,12 +383,15 @@ export function BookForm({ book, genresFromDb }: Props) {
                 value={formData.cover}
                 onChange={(e) => updateField("cover", e.target.value)}
               />
-              {formData.cover ? (
-                <img
-                  src={formData.cover}
-                  alt="Capa"
-                  className="mt-2 w-32 h-48 object-cover rounded shadow"
-                />
+              {coverPreview !== "/placeholder.svg" ? (
+                <div className="relative mt-2 h-48 w-32 overflow-hidden rounded shadow">
+                  <BookCover
+                    src={coverPreview}
+                    alt="Capa"
+                    sizes="128px"
+                    className="object-cover"
+                  />
+                </div>
               ) : (
                 <div className="mt-2 w-32 h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded">
                   Sem Capa
