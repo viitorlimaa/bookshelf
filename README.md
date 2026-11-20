@@ -87,18 +87,13 @@
 
 ### Gerenciamento de Estado e Dados
 
-- **[Zustand](https://zustand-demo.pmnd.rs/)** - Gerenciamento de estado leve e performático
-- **[Immer](https://immerjs.github.io/immer/)** - Manipulação imutável de estado
-- **[React Hook Form](https://react-hook-form.com/)** - Gerenciamento de formulários
-- **[Zod 3.25](https://zod.dev/)** - Validação de schemas TypeScript-first
+- Estado compartilhado gerenciado com React Context
+- Dados da biblioteca carregados diretamente do backend configurado
 
 ### UI/UX
 
-- **[Radix UI](https://www.radix-ui.com/)** - Componentes acessíveis e não estilizados
-  - Dialog, Dropdown Menu, Select, Tabs, Toast, Tooltip, e mais
+- **[Radix UI](https://www.radix-ui.com/)** - Componentes acessíveis: Alert Dialog, Dialog, Dropdown Menu, Label, Progress, Select, Slot e Toast
 - **[Lucide React](https://lucide.dev/)** - Ícones SVG modernos e customizáveis
-- **[Sonner](https://sonner.emilkowal.ski/)** - Sistema de notificações toast
-- **[next-themes](https://github.com/pacocoursey/next-themes)** - Gerenciamento de temas
 - **[Geist Font](https://vercel.com/font)** - Tipografia moderna da Vercel
 
 ### Utilitários
@@ -106,8 +101,7 @@
 - **[class-variance-authority](https://cva.style/)** - Variantes de componentes
 - **[clsx](https://github.com/lukeed/clsx)** - Utilitário para classes condicionais
 - **[tailwind-merge](https://github.com/dcastil/tailwind-merge)** - Merge inteligente de classes Tailwind
-- **[date-fns](https://date-fns.org/)** - Manipulação de datas
-- **[Recharts](https://recharts.org/)** - Biblioteca de gráficos para React
+- **[Framer Motion](https://motion.dev/)** - Animações de interface
 
 ### Análise e Monitoramento
 
@@ -139,29 +133,16 @@ Utilitários, helpers, configurações de API e schemas de validação.
 
 ### Rotas Principais
 
-| Rota               | Componente                     | Descrição                                                             |
-| ------------------ | ------------------------------ | --------------------------------------------------------------------- |
-| `/`                | `app/page.tsx`                 | **Dashboard** - Página inicial com estatísticas e atividades recentes |
-| `/biblioteca`      | `app/biblioteca/page.tsx`      | **Biblioteca** - Listagem completa de todos os livros cadastrados     |
-| `/adicionar-livro` | `app/adicionar-livro/page.tsx` | **Adicionar Livro** - Formulário para cadastro de novos livros        |
+| Rota         | Componente              | Descrição                                   |
+| ------------ | ----------------------- | ------------------------------------------- |
+| `/`          | `app/page.tsx`          | Página inicial                             |
+| `/library`   | `app/library/page.tsx`  | Listagem e filtros dos livros              |
+| `/add`       | `app/add/page.tsx`      | Formulário para cadastrar um livro         |
+| `/book/[id]` | `app/book/[id]/page.tsx` | Detalhes de um livro                       |
+| `/edit/[id]` | `app/edit/[id]/page.tsx` | Formulário para editar um livro            |
 
-### Rotas de API (Proxy)
-
-O projeto utiliza um proxy configurado no `next.config.mjs` para comunicação com o backend:
-
-\`\`\`javascript
-// Proxy para evitar CORS
-/api/_ → https://db-bookshelf.onrender.com/_
-\`\`\`
-
-**Endpoints disponíveis:**
-
-- `GET /api/books` - Lista todos os livros
-- `POST /api/books` - Cria um novo livro
-- `PUT /api/books/:id` - Atualiza um livro existente
-- `DELETE /api/books/:id` - Remove um livro
-- `GET /api/stats` - Retorna estatísticas da biblioteca
-- `GET /api/categories/genres` - Lista todos os gêneros
+A aplicação acessa o backend diretamente usando `NEXT_PUBLIC_API_BASE`; não há rotas
+de proxy da API no Next.js.
 
 ## 💻 Instalação
 
@@ -182,28 +163,17 @@ cd bookshelf
 2. **Instale as dependências**
 
 \`\`\`bash
-
-# Com npm
-
-npm install
-
-# Com yarn
-
-yarn install
-
-# Com pnpm
-
-pnpm install
+npm ci
 \`\`\`
 
-3. **Configure as variáveis de ambiente** (se necessário)
+3. **Configure a API**
 
 \`\`\`bash
-
-# Crie um arquivo .env.local na raiz do projeto
-
 cp .env.example .env.local
 \`\`\`
+
+O exemplo aponta para `http://localhost:3001`. Para produção, configure
+`NEXT_PUBLIC_API_BASE` com a URL do backend de produção.
 
 4. **Inicie o servidor de desenvolvimento**
 
