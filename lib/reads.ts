@@ -17,12 +17,13 @@ export async function getBooks(): Promise<ApiBook[]> {
   return res.json();
 }
 
-export async function getBook(id: string): Promise<ApiBook> {
+export async function getBook(id: string): Promise<ApiBook | null> {
   const res = await fetch(`${BASE_URL}/books/${id}`, {
     next: { revalidate: 60, tags: [bookCacheTag(id)] },
     signal: AbortSignal.timeout(READ_TIMEOUT_MS),
   });
 
+  if (res.status === 404) return null;
   if (!res.ok) throw new Error("Erro ao buscar livro");
   return res.json();
 }

@@ -20,6 +20,7 @@ export default async function BookDetailsPage({
   params: { id: string };
 }) {
   const id = Number(params.id);
+  if (!Number.isInteger(id) || id <= 0) notFound();
 
   // Buscar direto do banco
   const bookFromDb = await getBook(String(id));
@@ -76,7 +77,11 @@ export default async function BookDetailsPage({
                 <Pencil className="mr-2 h-4 w-4" /> Editar
               </Link>
             </Button>
-            <DeleteBookButton bookId={book.id} bookTitle={book.title} />
+            <DeleteBookButton
+              bookId={book.id}
+              bookTitle={book.title}
+              redirectToLibrary
+            />
           </div>
         </div>
 
