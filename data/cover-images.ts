@@ -5,18 +5,8 @@ const OPTIMIZABLE_COVER_HOSTS = new Set([
 ]);
 
 const LOCAL_COVERS: Array<{ matches: string[]; src: string }> = [
-  { matches: ["duna"], src: "/duna.jpg" },
   { matches: ["cem anos de solidao"], src: "/cem-anos-de-solid-o-book-cover.jpg" },
   { matches: ["grande sertao"], src: "/grande-sert-o-veredas-book-cover.jpg" },
-  { matches: ["senhor dos aneis"], src: "/senhor-dos-aneis.jpg" },
-  { matches: ["orgulho e preconceito"], src: "/orgulhoe-preconceito.jpg" },
-  { matches: ["codigo da vinci"], src: "/codigo-davinci.jpg" },
-  { matches: ["it a coisa"], src: "/it-a-coisa.jpg" },
-  { matches: ["steve jobs"], src: "/steve-jobs.jpg" },
-  { matches: ["sapiens"], src: "/sapiens.jpg" },
-  { matches: ["clean code", "coder propement"], src: "/clean-code.jpg" },
-  { matches: ["poder do habito"], src: "/poder-do-habito.jpg" },
-  { matches: ["meditacoes"], src: "/meditacoes.jpg" },
 ];
 
 function normalizeTitle(title: string): string {
