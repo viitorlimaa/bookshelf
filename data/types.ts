@@ -26,8 +26,8 @@ export interface Book {
   cover?: string;
   synopsis?: string;
   notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ApiBook
@@ -38,24 +38,6 @@ export interface ApiBook
   rating?: number | string | null;
   status?: ReadingStatus | null;
 }
-
-export const GENRES: string[] = [
-  "Literatura Brasileira",
-  "Ficção Científica",
-  "Realismo Mágico",
-  "Ficção",
-  "Fantasia",
-  "Romance",
-  "Biografia",
-  "História",
-  "Autoajuda",
-  "Tecnologia",
-  "Programação",
-  "Negócios",
-  "Psicologia",
-  "Filosofia",
-  "Poesia",
-];
 
 export const READING_STATUS: { value: ReadingStatus; label: string }[] = [
   { value: "QUERO_LER", label: "Quero Ler" },

@@ -15,6 +15,7 @@ interface EditBookPageProps {
 
 export default async function EditBookPage({ params }: EditBookPageProps) {
   const id = Number(params.id);
+  if (!Number.isInteger(id) || id <= 0) notFound();
 
   // Buscar livro direto do banco
   const apiBook = await getBook(String(id));

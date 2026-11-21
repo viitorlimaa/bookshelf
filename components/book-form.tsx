@@ -184,7 +184,6 @@ export function BookForm({ book, genresFromDb }: Props) {
           variant: "success",
         });
       }
-      router.refresh();
       router.push("/library");
     } catch (err: unknown) {
       console.error("❌ Erro ao salvar livro:", err);

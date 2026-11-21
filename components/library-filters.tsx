@@ -8,13 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GENRES, READING_STATUS } from "@/data/types";
+import { READING_STATUS, type Genre } from "@/data/types";
 import { Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "./ui/button";
 import { useCallback, useEffect, useState } from "react";
 
-export function LibraryFilters() {
+export function LibraryFilters({ genres }: { genres: Genre[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -89,9 +89,9 @@ export function LibraryFilters() {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todos os gêneros</SelectItem>
-          {GENRES.map((g) => (
-            <SelectItem key={g} value={g}>
-              {g}
+          {genres.map((genre) => (
+            <SelectItem key={genre.id} value={genre.name}>
+              {genre.name}
             </SelectItem>
           ))}
         </SelectContent>

@@ -2,7 +2,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import {
-  GENRES,
   READING_STATUS,
   type ApiBook,
   type Book,
@@ -62,11 +61,6 @@ export function capitalize(text: string): string {
 /**
  * Converte string genérica em Genre válido, ou undefined se inválido.
  */
-export function parseGenre(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  return GENRES.includes(value) ? value : undefined;
-}
-
 
 /**
  * Converte string genérica em ReadingStatus válido, ou undefined se inválido.
