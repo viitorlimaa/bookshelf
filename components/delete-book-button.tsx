@@ -5,7 +5,7 @@ import { Trash2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useToast } from "./ui/toast";
 import { useBooksActions } from "./book-actions";
-import { useLibrary } from "./library-context";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -21,18 +21,22 @@ import {
 interface DeleteBookButtonProps {
   bookId: string;
   bookTitle: string;
+  redirectToLibrary?: boolean;
 }
 
-export function DeleteBookButton({ bookId, bookTitle }: DeleteBookButtonProps) {
+export function DeleteBookButton({
+  bookId,
+  bookTitle,
+  redirectToLibrary = false,
+}: DeleteBookButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   const { deleteBook } = useBooksActions();
-  const { removeBook } = useLibrary(); // 👈 garante sincronização local
+  const router = useRouter();
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      removeBook(bookId); // remove imediatamente da UI
       const result = await deleteBook(bookId);
       if (result.success) {
         toast({
@@ -40,6 +44,7 @@ export function DeleteBookButton({ bookId, bookTitle }: DeleteBookButtonProps) {
           description: `"${bookTitle}" foi removido.`,
           variant: "success",
         });
+        if (redirectToLibrary) router.replace("/library");
       } else {
         toast({
           title: "Erro",

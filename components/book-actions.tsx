@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useLibrary } from "@/components/library-context";
 import {
   createBook as createBookAction,
@@ -11,7 +10,6 @@ import {
 import type { Book } from "@/data/types";
 
 export function useBooksActions() {
-  const router = useRouter();
   const { setBooks, removeBook } = useLibrary();
 
   async function refreshBooks() {
@@ -26,17 +24,14 @@ export function useBooksActions() {
   async function createBook(data: Partial<Book>) {
     await createBookAction(data);
     await refreshBooks();
-    router.refresh();
   }
 
   async function editBook(id: string | undefined, data: Partial<Book>) {
     if (!id) return;
     await updateBookAction(id, data);
     await refreshBooks();
-    router.refresh();
   }
 
-  // 💥 Corrigido: deleta do backend e do contexto imediatamente
   async function deleteBook(id: string | undefined) {
     if (!id) return { success: false, error: "ID não fornecido" };
 
@@ -44,12 +39,7 @@ export function useBooksActions() {
       const result = await deleteBookAction(id);
 
       if (result.success) {
-        // remove o livro localmente (atualiza UI instantaneamente)
         removeBook(String(id));
-
-        // pequeno atraso só pra garantir que o servidor terminou o revalidate
-        await new Promise((r) => setTimeout(r, 200));
-        router.refresh();
       }
 
       return result;
