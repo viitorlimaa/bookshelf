@@ -3,13 +3,15 @@ import { Suspense } from "react";
 import { LibraryProvider } from "@/components/library-context";
 import { LibraryFilters } from "@/components/library-filters";
 import { LibraryBooks } from "@/components/library-books";
-import { getBooks } from "@/lib/reads";
+import { getBooks, getGenres } from "@/lib/reads";
 import { BookGridSkeleton } from "@/components/book-grid-skeleton";
 import { normalizeBook } from "@/data/utils";
 
 export const dynamic = "force-dynamic";
 
-export default function LibraryPage() {
+export default async function LibraryPage() {
+  const genres = await getGenres();
+
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <div className="space-y-2 text-center sm:text-left">
@@ -25,7 +27,7 @@ export default function LibraryPage() {
         fallback={<div className="text-center">Carregando filtros...</div>}
       >
         <div className="w-full max-w-5xl mx-auto">
-          <LibraryFilters />
+          <LibraryFilters genres={genres} />
         </div>
       </Suspense>
 
