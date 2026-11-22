@@ -4,6 +4,7 @@ import { useLibrary } from "./library-context";
 import { BookGrid } from "@/components/book-grid";
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { filterBooks } from "@/data/library-filters";
 
 interface LibraryBooksProps {
   searchParams?: {
@@ -22,29 +23,10 @@ export function LibraryBooks({
   const genre = pageSearchParams?.genre ?? urlSearchParams.get("genre") ?? "";
   const status = pageSearchParams?.status ?? urlSearchParams.get("status") ?? "";
 
-  const filteredBooks = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    const normalizedGenre =
-      genre.trim().toLowerCase() === "all" ? "" : genre.trim().toLowerCase();
-    const normalizedStatus =
-      status.trim().toLowerCase() === "all"
-        ? ""
-        : status.trim().toLowerCase();
-
-    return books.filter((b) => {
-      const matchesQuery =
-        !normalizedQuery ||
-        b.title.toLowerCase().includes(normalizedQuery) ||
-        b.author.toLowerCase().includes(normalizedQuery);
-      const matchesGenre =
-        !normalizedGenre ||
-        !!b.genres?.some((name) => name.toLowerCase() === normalizedGenre);
-      const matchesStatus =
-        !normalizedStatus || b.status?.toLowerCase() === normalizedStatus;
-
-      return matchesQuery && matchesGenre && matchesStatus;
-    });
-  }, [books, query, genre, status]);
+  const filteredBooks = useMemo(
+    () => filterBooks(books, { query, genre, status }),
+    [books, query, genre, status]
+  );
 
   if (books.length === 0) {
     return (

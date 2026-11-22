@@ -5,7 +5,6 @@ import {
   READING_STATUS,
   type ApiBook,
   type Book,
-  type Genre,
   type ReadingStatus,
 } from "@/data/types";
 
