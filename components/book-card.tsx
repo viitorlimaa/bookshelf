@@ -8,6 +8,14 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { getBookCover } from "@/data/cover-images";
 
+const bookCoverSizes = [
+  "(max-width: 639px) calc(100vw - 2rem)",
+  "(max-width: 1023px) calc((100vw - 4.5rem) / 2)",
+  "(max-width: 1215px) calc((100vw - 7rem) / 3)",
+  "(max-width: 1279px) 23rem",
+  "270px",
+].join(", ");
+
 interface BookCardProps {
   book: Book;
   onDelete?: (bookId: string) => void;
@@ -28,7 +36,7 @@ export function BookCard({ book, onDelete, priority = false }: BookCardProps) {
           <BookCover
             src={cover}
             alt={book.title}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            sizes={bookCoverSizes}
             className="object-cover"
             priority={priority}
           />
