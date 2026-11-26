@@ -95,7 +95,10 @@ export default async function BookDetailsPage({
                   <BookCover
                     src={cover}
                     alt={book.title}
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes={
+                      "(max-width: 767px) calc(100vw - 2rem), " +
+                      "(max-width: 1023px) calc((100vw - 6rem) / 3), 304px"
+                    }
                     className="object-cover"
                     priority
                   />

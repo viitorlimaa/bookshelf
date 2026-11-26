@@ -32,6 +32,7 @@ export function BookCover({
       alt={alt}
       fill
       sizes={sizes}
+      quality={85}
       priority={priority}
       unoptimized={!shouldOptimizeCover(imageSrc)}
       onError={() => setHasError(true)}
