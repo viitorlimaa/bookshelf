@@ -3,12 +3,14 @@ import type { Book } from "@/data/types";
 import { BOOKS_CACHE_TAG, bookCacheTag } from "@/lib/reads";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE!;
+const MUTATION_TIMEOUT_MS = 8_000;
 
 export async function createBook(data: Partial<Book>) {
   const res = await fetch(`${BASE_URL}/books`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
+    signal: AbortSignal.timeout(MUTATION_TIMEOUT_MS),
   });
 
   if (!res.ok) throw new Error("Erro ao criar livro");
@@ -21,6 +23,7 @@ export async function updateBook(id: string, data: Partial<Book>) {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
+    signal: AbortSignal.timeout(MUTATION_TIMEOUT_MS),
   });
 
   if (!res.ok) {
@@ -33,7 +36,10 @@ export async function updateBook(id: string, data: Partial<Book>) {
 }
 
 export async function deleteBook(id: string) {
-  const res = await fetch(`${BASE_URL}/books/${id}`, { method: "DELETE" });
+  const res = await fetch(`${BASE_URL}/books/${id}`, {
+    method: "DELETE",
+    signal: AbortSignal.timeout(MUTATION_TIMEOUT_MS),
+  });
 
   if (!res.ok) {
     const text = await res.text();

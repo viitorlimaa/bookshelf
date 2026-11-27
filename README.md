@@ -74,7 +74,7 @@ Os testes cobrem regras puras de estatísticas, progresso, normalização de dad
 ## Decisões técnicas
 
 - **Data Cache com tags — menos chamadas à API — trade-off:** dados podem esperar até 60 s, apesar da invalidação imediata após mutações.
-- **Server Actions para mutações — validação central no servidor Next — trade-off:** dependem da API remota e não oferecem reprocessamento offline.
+- **Server Actions como repasse para a API — validação no formulário e no backend — trade-off:** dependem da API remota e não oferecem reprocessamento offline.
 - **Filtros na URL — navegação compartilhável — trade-off:** alteração de parâmetro gera nova navegação e o debounce da busca adiciona 400 ms.
 - **Vitest para regras puras — testes rápidos e isolados — trade-off:** não substitui testes de integração com o backend.
 

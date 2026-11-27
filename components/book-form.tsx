@@ -154,17 +154,24 @@ export function BookForm({ book, genresFromDb }: Props) {
       }
 
       const cover = formData.cover?.trim();
+      const year = formData.year.trim()
+        ? parseInt(formData.year, 10)
+        : undefined;
+      const pages = formData.pages.trim()
+        ? parseInt(formData.pages, 10)
+        : undefined;
+      const synopsis = formData.synopsis?.trim();
       const payload: Partial<Book> = {
         title: formData.title.trim(),
         author: formData.author.trim(),
-        year: parseInt(formData.year || "0", 10) || 0,
-        pages: parseInt(formData.pages || "0", 10) || 0,
         currentPage: parseInt(formData.currentPage || "0", 10) || 0,
         status: formData.status as ReadingStatus,
         isbn: formData.isbn?.trim() || undefined,
+        ...(year !== undefined ? { year } : {}),
+        ...(pages !== undefined ? { pages } : {}),
         ...(cover ? { cover } : {}),
         rating: Number(formData.rating) || 0,
-        synopsis: formData.synopsis?.trim() || "Sem sinopse",
+        ...(synopsis ? { synopsis } : {}),
         notes: formData.notes?.trim() || undefined,
         genreIds: [selectedGenre.id],
       };
